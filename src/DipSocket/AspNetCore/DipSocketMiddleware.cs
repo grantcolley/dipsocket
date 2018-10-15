@@ -20,7 +20,7 @@ namespace DipSocket.AspNetCore
                     if (context.WebSockets.IsWebSocketRequest)
                     {
                         WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                        await Echo(context, webSocket);
+                        //await Echo(context, webSocket);
                     }
                     else
                     {

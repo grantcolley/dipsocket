@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace DipSocket.Server
 {
-    internal class WebSocketController
+    public class WebSocketConnections
     {
         private ConcurrentDictionary<string, WebSocket> webSockets;
 
-        internal WebSocketController()
+        public WebSocketConnections()
         {
             webSockets = new ConcurrentDictionary<string, WebSocket>();
         }
