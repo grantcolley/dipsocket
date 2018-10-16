@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace DipSocket.Server
 {
-    public abstract class WebSocketServerBase
+    public abstract class WebSocketServer
     {
         private WebSocketConnections webSocketConnections;
 
-        protected WebSocketServerBase(WebSocketConnections webSocketConnections)
+        protected WebSocketServer(WebSocketConnections webSocketConnections)
         {
             this.webSocketConnections = webSocketConnections;
         }
 
         public abstract Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer);
 
-        public virtual bool OnConnect(WebSocket websocket)
+        public virtual async Task<bool> OnConnectAsync(WebSocket websocket)
         {
             return webSocketConnections.TryAddWebSocket(websocket);
         }
