@@ -1,4 +1,4 @@
-﻿using DipSocket.AspNetCore;
+﻿using DipSocket.NetCore.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -29,9 +29,7 @@ namespace Server
         {
             //app.UseSignalR(routes => { routes.MapHub<NotificationHub>("/notificationhub"); });
 
-            app.UseDipSocket();
-
-
+            app.UseDipSocket<ChatServer>("/abc");
         }
     }
 }

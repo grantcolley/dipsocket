@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\DipSocket.NetCore.Extensions\DipSocket.NetCore.Extensions.csproj" />
     <ProjectReference Include="..\..\src\DipSocket\DipSocket.csproj" />
   </ItemGroup>
 
