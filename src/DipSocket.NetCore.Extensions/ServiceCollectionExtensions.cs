@@ -1,4 +1,4 @@
-﻿using DipSocket;
+﻿using DipSocket.Server;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -8,7 +8,7 @@ namespace DipSocket.NetCore.Extensions
     {
         public static IServiceCollection AddDipSocket(this IServiceCollection servicesCollection)
         {
-            servicesCollection.AddTransient<WebSocketConnections>();
+            servicesCollection.AddTransient<WebSocketServerConnections>();
 
             foreach (var type in Assembly.GetEntryAssembly().ExportedTypes)
             {

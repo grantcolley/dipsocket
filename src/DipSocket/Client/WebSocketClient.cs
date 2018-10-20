@@ -2,9 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DipSocket
+namespace DipSocket.Client
 {
-    public class WebSocketConnection
+    public class WebSocketClient
     {
         public event Func<Exception, Task> Closed;
 
