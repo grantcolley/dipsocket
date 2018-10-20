@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{CE792551-F629-441A-A876-513E3A499BC3}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DipSocket", "..\src\DipSocket\DipSocket.csproj", "{D007E914-9DF1-4D52-A044-F747537DA316}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{9D695C20-7D8B-4426-8A88-65F7F1668159}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CE792551-F629-441A-A876-513E3A499BC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CE792551-F629-441A-A876-513E3A499BC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CE792551-F629-441A-A876-513E3A499BC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CE792551-F629-441A-A876-513E3A499BC3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D007E914-9DF1-4D52-A044-F747537DA316}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D007E914-9DF1-4D52-A044-F747537DA316}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D007E914-9DF1-4D52-A044-F747537DA316}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D007E914-9DF1-4D52-A044-F747537DA316}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D695C20-7D8B-4426-8A88-65F7F1668159}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D695C20-7D8B-4426-8A88-65F7F1668159}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D695C20-7D8B-4426-8A88-65F7F1668159}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D695C20-7D8B-4426-8A88-65F7F1668159}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
