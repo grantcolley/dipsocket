@@ -29,7 +29,7 @@ namespace Server
         {
             //app.UseSignalR(routes => { routes.MapHub<NotificationHub>("/notificationhub"); });
 
-            app.UseDipSocket<ChatServer>("/abc");
+            app.UseDipSocket<ChatServer>("/chat");
         }
     }
 }
