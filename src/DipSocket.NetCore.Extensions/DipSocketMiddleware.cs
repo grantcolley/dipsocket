@@ -25,8 +25,10 @@ namespace DipSocket.NetCore.Extensions
                 if (context.WebSockets.IsWebSocketRequest)
                 {
                     var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+
                     await webSocketServer.OnConnectAsync(webSocket);
 
+                    await Receive(webSocket);
                 }
                 else
                 {

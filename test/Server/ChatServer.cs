@@ -1,7 +1,9 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
+using DipSocket;
 using DipSocket.Server;
+using Newtonsoft.Json;
 
 namespace Server
 {
@@ -11,7 +13,12 @@ namespace Server
         {
             await base.OnConnectAsync(websocket);
             var connectionId = GetConnectionId(websocket);
-            await SendMessageToAll($"{connectionId} : Connected");
+
+            var message = new Message { MethodName = "OnConnected", SentBy = "Channel", Data = $"{connectionId} : Connected" };
+
+            var json = JsonConvert.SerializeObject(message);
+
+            await SendMessageToAll(json);
         }
 
         public async override Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer)
