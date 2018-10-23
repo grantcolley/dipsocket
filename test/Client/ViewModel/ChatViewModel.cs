@@ -82,10 +82,20 @@ namespace Client.ViewModel
                     {
                         var message = JsonConvert.DeserializeObject<Message>(newMessage.ToString());
                         Messages.Add(message);
+                        IsConnected = true;
                     }
                 });
 
-                clientWebSocketConnection.On("method2", (newMessage) =>
+                clientWebSocketConnection.On("OnMessageReceived", (newMessage) =>
+                {
+                    lock (messagesLock)
+                    {
+                        var message = JsonConvert.DeserializeObject<Message>(newMessage.ToString());
+                        Messages.Add(message);
+                    }
+                });
+
+                clientWebSocketConnection.On("OnChannelUpdate", (newMessage) =>
                 {
                     lock (messagesLock)
                     {
