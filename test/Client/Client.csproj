@@ -67,6 +67,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Command\ViewModelCommand.cs" />
+    <Compile Include="Converter\BoolToConnectConverter.cs" />
     <Compile Include="ViewModel\ChatViewModel.cs" />
     <Compile Include="View\ChatView.xaml.cs">
       <DependentUpon>ChatView.xaml</DependentUpon>
@@ -108,5 +109,6 @@
       <Name>DipSocket</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
