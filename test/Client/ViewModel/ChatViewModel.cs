@@ -21,6 +21,7 @@ namespace Client.ViewModel
         public ChatViewModel()
         {
             ConnectCommand = new ViewModelCommand(OnConnect);
+            NewChannelCommand = new ViewModelCommand(OnNewChannel);
 
             messagesLock = new object();
             Messages = new ObservableCollection<Message>();
@@ -30,6 +31,7 @@ namespace Client.ViewModel
         }
 
         public ICommand ConnectCommand { get; set; }
+        public ICommand NewChannelCommand { get; set; }
 
         public ObservableCollection<Message> Messages { get; }
 
@@ -46,19 +48,6 @@ namespace Client.ViewModel
             }
         }
 
-        public string Message
-        {
-            get { return message; }
-            set
-            {
-                if(message != value)
-                {
-                    message = value;
-                    OnPropertyChanged("Message");
-                }
-            }
-        }
-
         public async void SendMessage()
         {
 
@@ -66,7 +55,7 @@ namespace Client.ViewModel
 
         private async void OnConnect(object arg)
         {
-            if(arg == null 
+            if (arg == null
                 || string.IsNullOrWhiteSpace(arg.ToString()))
             {
                 return;
@@ -78,7 +67,7 @@ namespace Client.ViewModel
             {
                 clientWebSocketConnection.On("OnConnected", (newMessage) =>
                 {
-                    lock(messagesLock)
+                    lock (messagesLock)
                     {
                         var message = JsonConvert.DeserializeObject<Message>(newMessage.ToString());
                         Messages.Add(message);
@@ -106,10 +95,15 @@ namespace Client.ViewModel
 
                 await clientWebSocketConnection.StartAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 // todo : exception handling
             }
+        }
+
+        private async void OnNewChannel(object arg)
+        {
+
         }
     }
 }
