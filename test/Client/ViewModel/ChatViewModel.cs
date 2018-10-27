@@ -5,6 +5,7 @@ using DipSocket.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -22,9 +23,14 @@ namespace Client.ViewModel
         {
             ConnectCommand = new ViewModelCommand(OnConnect);
             NewChannelCommand = new ViewModelCommand(OnNewChannel);
+            ClearErrorsCommand = new ViewModelCommand(OnClearErrors);
 
             messagesLock = new object();
             Messages = new ObservableCollection<Message>();
+
+            Errors = new ObservableCollection<Error>();
+            Errors.CollectionChanged += ErrorsCollectionChanged;
+
             BindingOperations.EnableCollectionSynchronization(Messages, messagesLock);
 
             clientWebSocketConnection = new ClientWebSocketConnection(@"ws://localhost:6000/chat");
@@ -32,8 +38,15 @@ namespace Client.ViewModel
 
         public ICommand ConnectCommand { get; set; }
         public ICommand NewChannelCommand { get; set; }
+        public ICommand ClearErrorsCommand { get; set; }
 
         public ObservableCollection<Message> Messages { get; }
+        public ObservableCollection<Error> Errors { get; set; }
+
+        public bool HasErrors
+        {
+            get { return Errors.Any(); }
+        }
 
         public bool IsConnected
         {
@@ -58,6 +71,7 @@ namespace Client.ViewModel
             if (arg == null
                 || string.IsNullOrWhiteSpace(arg.ToString()))
             {
+                Errors.Add(new Error { Message = "A user name is required to connect to Chat", Verbose = "A user name is required to connect to Chat" });
                 return;
             }
 
@@ -94,16 +108,29 @@ namespace Client.ViewModel
                 });
 
                 await clientWebSocketConnection.StartAsync();
+
+                IsConnected = true;
             }
             catch (Exception ex)
             {
-                // todo : exception handling
+                IsConnected = false;
+                Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
             }
         }
 
         private async void OnNewChannel(object arg)
         {
 
+        }
+
+        private async void OnClearErrors(object args)
+        {
+            Errors.Clear();
+        }
+
+        private void ErrorsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged("HasErrors");
         }
     }
 }
