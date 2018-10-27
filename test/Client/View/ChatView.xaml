@@ -80,9 +80,9 @@
         <DataTemplate DataType="{x:Type dip:Message}">
             <GroupBox Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <DockPanel LastChildFill="True">
-                    <Label DockPanel.Dock="Top" Content="{Binding SentOn}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                    <Label DockPanel.Dock="Top" Content="{Binding SentBy}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+                    <Label DockPanel.Dock="Left" Content="{Binding SentOn}" VerticalAlignment="Top" HorizontalAlignment="Left" Foreground="#FFFFFF"/>
+                    <Label DockPanel.Dock="Left" Content="{Binding SentBy}" VerticalAlignment="Top" HorizontalAlignment="Left" Foreground="#FFFFFF"/>
+                    <Label DockPanel.Dock="Left" Content="{Binding Data}" VerticalAlignment="Top" HorizontalAlignment="Left" Foreground="#FFFFFF"/>
                 </DockPanel>
             </GroupBox>
         </DataTemplate>
@@ -110,13 +110,13 @@
                     <DockPanel LastChildFill="True">
                         <Label DockPanel.Dock="Left" Margin="5" Content="User :" Foreground="#FFFFFF" Width="80"/>
                         <Button DockPanel.Dock="Right" Margin="5" Background="Transparent" BorderBrush="Transparent"
-                        ToolTip="{Binding IsConnected, Converter={StaticResource isConnectedToStringConverter}}"
-                        Command="{Binding ConnectCommand}" 
-                        CommandParameter="{Binding ElementName=txtUser, Path=Text}">
+                                ToolTip="{Binding IsConnected, Converter={StaticResource isConnectedToStringConverter}}"
+                                Command="{Binding ConnectCommand}" 
+                                CommandParameter="{Binding ElementName=txtUser, Path=Text}">
                             <ContentControl Content="{Binding IsConnected, Converter={StaticResource boolToConnectConverter}}"/>
                         </Button>
                         <TextBox x:Name="txtUser" Margin="5" Foreground="#FFFFFF" Background="#141414"
-                        IsReadOnly="{Binding IsConnected}">
+                                 IsReadOnly="{Binding IsConnected}">
                             <TextBox.Style>
                                 <Style TargetType="TextBox">
                                     <Style.Triggers>

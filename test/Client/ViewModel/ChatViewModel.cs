@@ -32,8 +32,6 @@ namespace Client.ViewModel
             Errors.CollectionChanged += ErrorsCollectionChanged;
 
             BindingOperations.EnableCollectionSynchronization(Messages, messagesLock);
-
-            clientWebSocketConnection = new ClientWebSocketConnection(@"ws://localhost:6000/chat");
         }
 
         public ICommand ConnectCommand { get; set; }
@@ -79,12 +77,13 @@ namespace Client.ViewModel
 
             try
             {
+                clientWebSocketConnection = new ClientWebSocketConnection(@"ws://localhost:6000/chat");
+
                 clientWebSocketConnection.On("OnConnected", (newMessage) =>
                 {
                     lock (messagesLock)
                     {
-                        var message = JsonConvert.DeserializeObject<Message>(newMessage.ToString());
-                        Messages.Add(message);
+                        Messages.Add((Message)newMessage);
                         IsConnected = true;
                     }
                 });
@@ -93,8 +92,7 @@ namespace Client.ViewModel
                 {
                     lock (messagesLock)
                     {
-                        var message = JsonConvert.DeserializeObject<Message>(newMessage.ToString());
-                        Messages.Add(message);
+                        Messages.Add((Message)newMessage);
                     }
                 });
 
@@ -102,8 +100,7 @@ namespace Client.ViewModel
                 {
                     lock (messagesLock)
                     {
-                        var message = JsonConvert.DeserializeObject<Message>(newMessage.ToString());
-                        Messages.Add(message);
+
                     }
                 });
 
