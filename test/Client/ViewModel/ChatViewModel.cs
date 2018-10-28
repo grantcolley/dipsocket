@@ -2,7 +2,6 @@
 using Client.Model;
 using DipSocket;
 using DipSocket.Client;
-using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -13,8 +12,7 @@ namespace Client.ViewModel
 {
     public class ChatViewModel : NotifyPropertyChangedBase
     {
-        private string user;
-        private string message;
+        private string connectionMessage;
         private bool isConnected;
         private object messagesLock;
         private ClientWebSocketConnection clientWebSocketConnection;
@@ -59,6 +57,19 @@ namespace Client.ViewModel
             }
         }
 
+        public string ConnectionMessage
+        {
+            get { return connectionMessage; }
+            set
+            {
+                if (connectionMessage != value)
+                {
+                    connectionMessage = value;
+                    OnPropertyChanged("ConnectionMessage");
+                }
+            }
+        }
+        
         public async void SendMessage()
         {
 
@@ -73,30 +84,31 @@ namespace Client.ViewModel
                 return;
             }
 
-            user = arg.ToString();
+            var user = arg.ToString();
 
             try
             {
                 clientWebSocketConnection = new ClientWebSocketConnection(@"ws://localhost:6000/chat");
 
-                clientWebSocketConnection.On("OnConnected", (newMessage) =>
+                clientWebSocketConnection.On("OnConnected", (result) =>
                 {
                     lock (messagesLock)
                     {
-                        Messages.Add((Message)newMessage);
+                        var message = (Message)result;
+                        ConnectionMessage = $"{message.SentOn} {message.SentBy} {message.Data}";
                         IsConnected = true;
                     }
                 });
 
-                clientWebSocketConnection.On("OnMessageReceived", (newMessage) =>
+                clientWebSocketConnection.On("OnMessageReceived", (result) =>
                 {
                     lock (messagesLock)
                     {
-                        Messages.Add((Message)newMessage);
+                        Messages.Add((Message)result);
                     }
                 });
 
-                clientWebSocketConnection.On("OnChannelUpdate", (newMessage) =>
+                clientWebSocketConnection.On("OnChannelUpdate", (result) =>
                 {
                     lock (messagesLock)
                     {

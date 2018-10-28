@@ -14,7 +14,7 @@ namespace Server
             await base.OnConnectAsync(websocket);
             var connectionId = GetConnectionId(websocket);
 
-            var message = new Message { MethodName = "OnConnected", SentBy = "Chat", Data = $"{connectionId} : Connected" };
+            var message = new Message { MethodName = "OnConnected", SentBy = "Chat", Data = $"Connected : {connectionId}" };
 
             var json = JsonConvert.SerializeObject(message);
 

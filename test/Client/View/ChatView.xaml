@@ -95,6 +95,7 @@
             <ColumnDefinition Width="80*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="80*"/>
             <RowDefinition Height="2"/>
             <RowDefinition Height="20*"/>
@@ -104,7 +105,11 @@
 
         <GridSplitter Grid.Column="1" Grid.RowSpan="3"  Width="2" VerticalAlignment="Stretch" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="Transparent"/>
 
-        <DockPanel Grid.Column="0" Grid.RowSpan="3" LastChildFill="True" Background="#141414">
+        <GroupBox Grid.Row="0" Grid.Column="2" Background="#141414" Height="55"  BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
+            <Label Margin="5" Content="{Binding ConnectionMessage}" Foreground="#FFFFFF" HorizontalAlignment="Left"/>
+        </GroupBox>
+        
+        <DockPanel Grid.Column="0" Grid.RowSpan="4" LastChildFill="True" Background="#141414">
             <GroupBox DockPanel.Dock="Top" Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <StackPanel>
                     <DockPanel LastChildFill="True">
@@ -122,13 +127,13 @@
                                     <Style.Triggers>
                                         <Trigger Property="IsReadOnly" Value="True">
                                             <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="BorderBrush" Value="Transparent"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
                             </TextBox.Style>
                         </TextBox>
                     </DockPanel>
-                    
                     <DockPanel DockPanel.Dock="Top" Background="#141414" LastChildFill="True">
                         <Label DockPanel.Dock="Left" Margin="5" Content="Channel" Foreground="#FFFFFF" Width="80"/>
                         <Button DockPanel.Dock="Right" Margin="5" Background="Transparent" BorderBrush="Transparent" 
@@ -142,18 +147,16 @@
 
                 </StackPanel>
             </GroupBox>
-
             <GroupBox Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <ListView Background="Transparent" BorderBrush="Transparent"/>
             </GroupBox>
-            
         </DockPanel>
 
-        <GroupBox Grid.Row="0" Grid.Column="2" Background="#030303" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
+        <GroupBox Grid.Row="1" Grid.Column="2" Background="#030303" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
             <ItemsControl Margin="5" Background="#030303" BorderBrush="Transparent" ItemsSource="{Binding Messages, Mode=OneWay}"/>
         </GroupBox>
 
-        <DockPanel Grid.Row="2" Grid.Column="2" LastChildFill="True" Background="#141414">
+        <DockPanel Grid.Row="3" Grid.Column="2" LastChildFill="True" Background="#141414">
             <GroupBox DockPanel.Dock="Bottom" Background="#141414" BorderBrush="#FFFFFF" 
                       Style="{StaticResource GroupBoxNoHeaderStyle}"
                       Visibility="{Binding HasErrors, Converter={StaticResource boolToVisibilityConverter}}">
@@ -170,11 +173,9 @@
                     <ItemsControl ItemsSource="{Binding Errors, Mode=OneWay}"/>
                 </DockPanel>
             </GroupBox>
-
             <GroupBox Background="#030303" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <TextBox Margin="5" Background="#030303" Foreground="#FFFFFF" BorderBrush="Transparent"/>
             </GroupBox>
-            
         </DockPanel>
 
     </Grid>
