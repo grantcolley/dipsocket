@@ -11,7 +11,6 @@ namespace DipSocket.NetCore.Extensions
             builder.UseWebSockets();
 
             var webSocketServer = Activator.CreateInstance<T>();
-            webSocketServer.AddWebSocketConnections(new WebSocketServerConnections());
             return builder.Map(route, (applicationBuilder) => applicationBuilder.UseMiddleware<DipSocketMiddleware>(webSocketServer));
         }
     }

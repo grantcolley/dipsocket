@@ -27,7 +27,7 @@ namespace DipSocket.NetCore.Extensions
                     var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
                     var clientName = context.Request.Query["client"];
-                    await webSocketServer.OnConnectAsync(clientName, webSocket);
+                    await webSocketServer.OnClientConnectAsync(clientName, webSocket);
 
                     await Receive(webSocket);
                 }
@@ -61,7 +61,7 @@ namespace DipSocket.NetCore.Extensions
 
                 if(result.MessageType.Equals(WebSocketMessageType.Close))
                 {
-                    await webSocketServer.OnDisonnectAsync(webSocket);
+                    await webSocketServer.OnClientDisonnectAsync(webSocket);
                     continue;
                 }
             }

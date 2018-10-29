@@ -2,11 +2,9 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: InternalsVisibleTo("DipSocket.NetCore.Extensions")]
 namespace DipSocket.Server
 {
     internal class WebSocketServerConnections

@@ -5,21 +5,20 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: InternalsVisibleTo("DipSocket.NetCore.Extensions")]
 namespace DipSocket.Server
 {
     public abstract class WebSocketServer
     {
-        private WebSocketServerConnections webSocketConnections;
+        private WebSocketServerConnections webSocketConnections = new WebSocketServerConnections();
 
         public abstract Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer);
 
-        public virtual async Task OnConnectAsync(string clientName, WebSocket websocket)
+        public virtual async Task OnClientConnectAsync(string clientName, WebSocket websocket)
         {
             await Task.Run(() => { webSocketConnections.TryAddWebSocket(clientName, websocket); });
         }
 
-        public virtual Task OnDisonnectAsync(WebSocket webSocket)
+        public virtual Task OnClientDisonnectAsync(WebSocket webSocket)
         {
             webSocket.Dispose();
             return webSocketConnections.TryRemoveWebSocket(webSocket);
@@ -46,7 +45,8 @@ namespace DipSocket.Server
 
         public async Task SendMessageToAll(string message)
         {
-            foreach(var webSocket in webSocketConnections.GetWebSockets())
+            var webSockets = webSocketConnections.GetWebSockets();
+            foreach(var webSocket in webSockets)
             {
                 await SendMessageAsync(webSocket.Value, message).ConfigureAwait(false);
             }
@@ -55,11 +55,6 @@ namespace DipSocket.Server
         public ClientConnection GetClientConnection(WebSocket webSocket)
         {
             return webSocketConnections.GetClientConnection(webSocket);
-        }
-
-        internal void AddWebSocketConnections(WebSocketServerConnections webSocketConnections)
-        {
-            this.webSocketConnections = webSocketConnections;
         }
     }
 }

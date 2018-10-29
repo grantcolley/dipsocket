@@ -1,4 +1,4 @@
-﻿namespace DipSocket.Server
+﻿namespace DipSocket
 {
     public class ClientConnection
     {
