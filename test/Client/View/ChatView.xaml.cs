@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using Client.ViewModel;
+using System.Windows;
+using System.Windows.Input;
 
 namespace Client.View
 {
@@ -10,6 +12,14 @@ namespace Client.View
         public ChatView()
         {
             InitializeComponent();
+        }
+
+        private void MessageKeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Key.Equals(Key.Enter))
+            {
+                ((ChatViewModel)DataContext).SendMessage();
+            }
         }
     }
 }

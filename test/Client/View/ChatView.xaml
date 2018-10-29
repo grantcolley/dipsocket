@@ -174,7 +174,8 @@
                 </DockPanel>
             </GroupBox>
             <GroupBox Background="#030303" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
-                <TextBox Margin="5" Background="#030303" Foreground="#FFFFFF" BorderBrush="Transparent"/>
+                <TextBox x:Name="txtMsg" Margin="5" Background="#030303" Foreground="#FFFFFF" BorderBrush="Transparent"
+                         Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" KeyDown="MessageKeyDown"/>
             </GroupBox>
         </DockPanel>
 

@@ -18,10 +18,14 @@ namespace DipSocket.Client
 
         public string ConnectionId { get; private set; }
         public string Url { get; private set; }
+        public string Client { get; private set; }
 
-        public ClientWebSocketConnection(string url)
+        public WebSocketState State { get { return clientWebSocket.State; } }
+
+        public ClientWebSocketConnection(string url, string client)
         {
             Url = url;
+            Client = client;
 
             clientWebSocket = new ClientWebSocket();
             registeredMethods = new Dictionary<string, Action<object>>();
@@ -51,7 +55,7 @@ namespace DipSocket.Client
 
         public async Task StartAsync()
         {
-            await clientWebSocket.ConnectAsync(new Uri(Url), CancellationToken.None);
+            await clientWebSocket.ConnectAsync(new Uri($"{Url}?client={Client}"), CancellationToken.None);
 
             RunReceiving();
         }

@@ -14,9 +14,9 @@ namespace DipSocket.Server
 
         public abstract Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer);
 
-        public virtual async Task OnConnectAsync(WebSocket websocket)
+        public virtual async Task OnConnectAsync(string clientName, WebSocket websocket)
         {
-            await Task.Run(() => { webSocketConnections.TryAddWebSocket(websocket); });
+            await Task.Run(() => { webSocketConnections.TryAddWebSocket(clientName, websocket); });
         }
 
         public virtual Task OnDisonnectAsync(WebSocket webSocket)
@@ -38,9 +38,9 @@ namespace DipSocket.Server
                 .ConfigureAwait(false); 
         }
 
-        public async Task SendMessageAsync(string connectionId, string message)
+        public async Task SendMessageAsync(ClientConnection clientConnection, string message)
         {
-            var webSocket = webSocketConnections.GetWebSocket(connectionId);
+            var webSocket = webSocketConnections.GetWebSocket(clientConnection);
             await SendMessageAsync(webSocket, message).ConfigureAwait(false);
         }
 
@@ -52,9 +52,9 @@ namespace DipSocket.Server
             }
         }
 
-        public string GetConnectionId(WebSocket webSocket)
+        public ClientConnection GetClientConnection(WebSocket webSocket)
         {
-            return webSocketConnections.GetConnectionId(webSocket);
+            return webSocketConnections.GetClientConnection(webSocket);
         }
 
         internal void AddWebSocketConnections(WebSocketServerConnections webSocketConnections)

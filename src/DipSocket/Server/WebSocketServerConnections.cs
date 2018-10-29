@@ -11,53 +11,53 @@ namespace DipSocket.Server
 {
     internal class WebSocketServerConnections
     {
-        private ConcurrentDictionary<string, WebSocket> webSockets;
+        private ConcurrentDictionary<ClientConnection, WebSocket> webSockets;
 
         internal WebSocketServerConnections()
         {
-            webSockets = new ConcurrentDictionary<string, WebSocket>();
+            webSockets = new ConcurrentDictionary<ClientConnection, WebSocket>();
         }
 
-        internal WebSocket GetWebSocket(string connectionId)
+        internal WebSocket GetWebSocket(ClientConnection clientConnection)
         {
-            if(string.IsNullOrWhiteSpace(connectionId))
+            if(clientConnection == null)
             {
                 return null;
             }
 
-            return webSockets.FirstOrDefault(ws => ws.Key.Equals(connectionId)).Value;
+            return webSockets.FirstOrDefault(ws => ws.Key.Equals(clientConnection)).Value;
         }
 
-        internal ConcurrentDictionary<string, WebSocket> GetWebSockets()
+        internal ConcurrentDictionary<ClientConnection, WebSocket> GetWebSockets()
         {
             return webSockets;
         }
 
-        internal string GetConnectionId(WebSocket webSocket)
+        internal ClientConnection GetClientConnection(WebSocket webSocket)
         {
             return webSockets.FirstOrDefault(ws => ws.Value.Equals(webSocket)).Key;
         }
 
-        internal bool TryAddWebSocket(WebSocket webSocket)
+        internal bool TryAddWebSocket(string clientName, WebSocket webSocket)
         {
-            var connectionId = NewConnectionId();
-            return webSockets.TryAdd(connectionId, webSocket);
+            if(string.IsNullOrWhiteSpace(clientName))
+            {
+                return false;
+            }
+
+            var clientConnection = new ClientConnection { Name = clientName, ConnectionId = Guid.NewGuid().ToString() };
+            return webSockets.TryAdd(clientConnection, webSocket);
         }
 
         internal async Task TryRemoveWebSocket(WebSocket webSocket)
         {
-            var connectionId = GetConnectionId(webSocket);
+            var clientConnection = GetClientConnection(webSocket);
 
             WebSocket socket;
-            if (webSockets.TryRemove(connectionId, out socket))
+            if (webSockets.TryRemove(clientConnection, out socket))
             {
                 await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by the WebSocketController", CancellationToken.None);
             }
-        }
-
-        private string NewConnectionId()
-        {
-            return Guid.NewGuid().ToString();
         }
     }
 }

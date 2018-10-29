@@ -5,6 +5,7 @@ using DipSocket.Client;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -12,6 +13,7 @@ namespace Client.ViewModel
 {
     public class ChatViewModel : NotifyPropertyChangedBase
     {
+        private string message;
         private string connectionMessage;
         private bool isConnected;
         private object messagesLock;
@@ -69,10 +71,39 @@ namespace Client.ViewModel
                 }
             }
         }
-        
+
+        public string Message
+        {
+            get { return message; }
+            set
+            {
+                if (message != value)
+                {
+                    message = value;
+                    OnPropertyChanged("Message");
+                }
+            }
+        }
+
         public async void SendMessage()
         {
+            if (clientWebSocketConnection == null
+                || !clientWebSocketConnection.State.Equals(WebSocketState.Open))
+            {
+                Errors.Add(new Error { Message = "Connection isn't open.", Verbose = "Connection isn't open." });
+                return;
+            }
 
+            try
+            {
+                await clientWebSocketConnection.SendMessageAsync(Message);
+
+                Message = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
+            }
         }
 
         private async void OnConnect(object arg)
@@ -88,7 +119,7 @@ namespace Client.ViewModel
 
             try
             {
-                clientWebSocketConnection = new ClientWebSocketConnection(@"ws://localhost:6000/chat");
+                clientWebSocketConnection = new ClientWebSocketConnection(@"ws://localhost:6000/chat", user);
 
                 clientWebSocketConnection.On("OnConnected", (result) =>
                 {
