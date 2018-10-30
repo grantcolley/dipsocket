@@ -2,9 +2,11 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+[assembly: InternalsVisibleTo("DipSocket.NetCore.Extensions")]
 namespace DipSocket.Server
 {
     internal class WebSocketServerConnections
@@ -16,6 +18,12 @@ namespace DipSocket.Server
             webSockets = new ConcurrentDictionary<ClientConnection, WebSocket>();
         }
 
+        internal WebSocket GetWebSocket(string clientName)
+        {
+            var clientConnection = webSockets.Keys.FirstOrDefault(c => c.Name.Equals(clientName));
+            return GetWebSocket(clientConnection);
+        }
+
         internal WebSocket GetWebSocket(ClientConnection clientConnection)
         {
             if(clientConnection == null)
@@ -23,7 +31,12 @@ namespace DipSocket.Server
                 return null;
             }
 
-            return webSockets.FirstOrDefault(ws => ws.Key.Equals(clientConnection)).Value;
+            if (webSockets.TryGetValue(clientConnection, out WebSocket webSocket))
+            {
+                return webSocket;
+            }
+
+            return null;
         }
 
         internal ConcurrentDictionary<ClientConnection, WebSocket> GetWebSockets()
@@ -33,7 +46,12 @@ namespace DipSocket.Server
 
         internal ClientConnection GetClientConnection(WebSocket webSocket)
         {
-            return webSockets.FirstOrDefault(ws => ws.Value.Equals(webSocket)).Key;
+            if(webSockets.Values.Contains(webSocket))
+            {
+                return webSockets.FirstOrDefault(ws => ws.Value.Equals(webSocket)).Key;
+            }
+
+            return null;
         }
 
         internal bool TryAddWebSocket(string clientName, WebSocket webSocket)

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using DipSocket.Messages;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
@@ -11,7 +12,7 @@ namespace DipSocket.Client
     public class ClientWebSocketConnection
     {
         private ClientWebSocket clientWebSocket;
-        private Dictionary<string, Action<object>> registeredMethods;
+        private Dictionary<string, Action<ServerMessage>> registeredMethods;
         private bool disposed;
 
         public event Func<Exception, Task> Closed;
@@ -28,7 +29,7 @@ namespace DipSocket.Client
             Client = client;
 
             clientWebSocket = new ClientWebSocket();
-            registeredMethods = new Dictionary<string, Action<object>>();
+            registeredMethods = new Dictionary<string, Action<ServerMessage>>();
         }
 
         public async Task DisposeAsync()
@@ -48,7 +49,7 @@ namespace DipSocket.Client
             disposed = true;
         }
 
-        public void On(string methodName, Action<object> handler)
+        public void On(string methodName, Action<ServerMessage> handler)
         {
             registeredMethods.Add(methodName, handler);
         }
@@ -60,11 +61,13 @@ namespace DipSocket.Client
             RunReceiving();
         }
 
-        public async Task SendMessageAsync(string message)
+        public async Task SendMessageAsync(ClientMessage message)
         {
             if (clientWebSocket.State.Equals(WebSocketState.Open))
             {
-                var bytes = Encoding.UTF8.GetBytes(message);
+                var json = JsonConvert.SerializeObject(message);
+
+                var bytes = Encoding.UTF8.GetBytes(json);
 
                 await clientWebSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
             }
@@ -111,9 +114,9 @@ namespace DipSocket.Client
                 {
                     var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
-                    var message = JsonConvert.DeserializeObject<Message>(json);
+                    var message = JsonConvert.DeserializeObject<ServerMessage>(json);
 
-                    if (registeredMethods.TryGetValue(message.MethodName, out Action<object> method))
+                    if (registeredMethods.TryGetValue(message.MethodName, out Action<ServerMessage> method))
                     {
                         method.Invoke(message);
                     }

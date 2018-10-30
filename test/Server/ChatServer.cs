@@ -1,7 +1,8 @@
-﻿using System.Net.WebSockets;
+﻿using System;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
-using DipSocket;
+using DipSocket.Messages;
 using DipSocket.Server;
 using Newtonsoft.Json;
 
@@ -15,24 +16,45 @@ namespace Server
 
             var clientConnection = GetClientConnection(websocket);
 
-            var message = new Message { MethodName = "OnConnected", SentBy = "Chat", Data = $"Connected : {clientConnection.Name}" };
+            if (clientConnection != null)
+            {
+                var json = JsonConvert.SerializeObject(clientConnection);
 
-            var json = JsonConvert.SerializeObject(message);
+                var message = new ServerMessage { MethodName = "OnConnected", SentBy = "Chat", Data = json };
 
-            await SendMessageToAll(json);
+                await SendMessageAsync(websocket, message);
+            }
         }
 
         public async override Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer)
         {
-            var clientConnection = GetClientConnection(webSocket);
+            var json = Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count);
 
-            // TODO: var message = JsonConvert.DeserializeObject<Message>(Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count));
+            var clientMessage = JsonConvert.DeserializeObject<ClientMessage>(json);
 
-            var message = new Message { MethodName = "OnMessageReceived", SentBy = clientConnection.Name, Data = Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count) };
+            switch (clientMessage.MessageType)
+            {
+                case MessageType.All:
+                    var messageAll = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
+                    await SendMessageToAllAsync(messageAll);
+                    break;
 
-            var json = JsonConvert.SerializeObject(message);
+                case MessageType.Client:
+                    var messageClient = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
+                    await SendMessageAsync(clientMessage.SendTo, messageClient);
+                    break;
 
-            await SendMessageToAll(json);
+                case MessageType.Group:
+                    // TODO
+                    break;
+
+                case MessageType.NewChannel:
+                    // TODO
+                    break;
+
+                default:
+                    throw new NotImplementedException($"{clientMessage.MessageType}");
+            }
         }
     }
 }

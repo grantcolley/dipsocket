@@ -1,15 +1,14 @@
 ﻿using System;
 
-namespace DipSocket
+namespace DipSocket.Messages
 {
-    public class Message
+    public abstract class Message
     {
-        public Message()
+        protected Message()
         {
             SentOn = DateTime.Now;
         }
 
-        public string MethodName { get; set; }
         public DateTime SentOn { get; set; }
         public string SentBy { get; set; }
         public string Data { get; set; }

@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converters="clr-namespace:Client.Converter"
-        xmlns:dip="clr-namespace:DipSocket;assembly=DipSocket"
+        xmlns:dip="clr-namespace:DipSocket.Messages;assembly=DipSocket"
         xmlns:model="clr-namespace:Client.Model"
         xmlns:viewModel="clr-namespace:Client.ViewModel"
         mc:Ignorable="d" Background="#141414"
@@ -121,6 +121,7 @@
                             <ContentControl Content="{Binding IsConnected, Converter={StaticResource boolToConnectConverter}}"/>
                         </Button>
                         <TextBox x:Name="txtUser" Margin="5" Foreground="#FFFFFF" Background="#141414"
+                                 Text="{Binding User, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  IsReadOnly="{Binding IsConnected}">
                             <TextBox.Style>
                                 <Style TargetType="TextBox">
@@ -137,18 +138,20 @@
                     <DockPanel DockPanel.Dock="Top" Background="#141414" LastChildFill="True">
                         <Label DockPanel.Dock="Left" Margin="5" Content="Channel" Foreground="#FFFFFF" Width="80"/>
                         <Button DockPanel.Dock="Right" Margin="5" Background="Transparent" BorderBrush="Transparent" 
-                        ToolTip="Create a new channel"
-                        Command="{Binding NewChannelCommand}" 
-                        CommandParameter="{Binding ElementName=txtNewChannel, Path=Text}">
+                                ToolTip="Create a new channel"
+                                Command="{Binding NewChannelCommand}" 
+                                CommandParameter="{Binding ElementName=txtNewChannel, Path=Text}">
                             <ContentControl Content="{StaticResource add}"/>
                         </Button>
-                        <TextBox x:Name="txtNewChannel" Margin="5" Foreground="#FFFFFF" Background="#141414"/>
+                        <TextBox x:Name="txtNewChannel" Margin="5" Foreground="#FFFFFF" Background="#141414"
+                                 Text="{Binding NewChannel, Mode=twoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     </DockPanel>
 
                 </StackPanel>
             </GroupBox>
             <GroupBox Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
-                <ListView Background="Transparent" BorderBrush="Transparent"/>
+                <ListView Background="Transparent" BorderBrush="Transparent"
+                          ItemsSource="{Binding Connections}"/>
             </GroupBox>
         </DockPanel>
 
