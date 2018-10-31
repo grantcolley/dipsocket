@@ -130,7 +130,7 @@ namespace Client.ViewModel
 
             try
             {
-                var clientMessage = new ClientMessage { SentBy = ClientConnection.Name, Data = Message, MessageType = MessageType.Client };
+                var clientMessage = new ClientMessage { SentBy = ClientConnection.Name, Data = Message, MessageType = MessageType.SendToClient };
                 await clientWebSocketConnection.SendMessageAsync(clientMessage);
 
                 Message = string.Empty;
@@ -232,7 +232,7 @@ namespace Client.ViewModel
 
             try
             {
-                var clientMessage = new ClientMessage { SentBy = ClientConnection.Name, Data = NewChannel, MessageType = MessageType.NewChannel };
+                var clientMessage = new ClientMessage { SentBy = ClientConnection.Name, Data = NewChannel, MessageType = MessageType.CreateNewChannel };
 
                 await clientWebSocketConnection.SendMessageAsync(clientMessage);
 
