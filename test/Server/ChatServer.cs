@@ -18,11 +18,13 @@ namespace Server
 
             if (clientConnection != null)
             {
-                var json = JsonConvert.SerializeObject(clientConnection);
+                var jsonConnected = JsonConvert.SerializeObject(clientConnection);
 
-                var message = new ServerMessage { MethodName = "OnConnected", SentBy = "Chat", Data = json };
+                var messageConnected = new ServerMessage { MethodName = "OnConnected", SentBy = "Chat", Data = jsonConnected };
 
-                await SendMessageAsync(websocket, message);
+                await SendMessageAsync(websocket, messageConnected);
+
+                await ChannelUpdateAsync();
             }
         }
 
@@ -34,27 +36,49 @@ namespace Server
 
             switch (clientMessage.MessageType)
             {
-                case MessageType.All:
+                case MessageType.SendToAll:
                     var messageAll = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
                     await SendMessageToAllAsync(messageAll);
                     break;
 
-                case MessageType.Client:
+                case MessageType.SendToClient:
                     var messageClient = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
                     await SendMessageAsync(clientMessage.SendTo, messageClient);
                     break;
 
-                case MessageType.Group:
+                case MessageType.CreateNewChannel:
+                    // TODO
+
+                    await ChannelUpdateAsync();
+                    break;
+
+                case MessageType.SubscribeToChannel:
+                    // TODO
+
+                    break;
+                case MessageType.SendToChannel:
                     // TODO
                     break;
 
-                case MessageType.NewChannel:
+                case MessageType.UnsubscribeFromChannel:
                     // TODO
+
                     break;
 
                 default:
                     throw new NotImplementedException($"{clientMessage.MessageType}");
             }
+        }
+
+        private async Task ChannelUpdateAsync()
+        {
+            var webSockets = GetClientConnections();
+
+            var jsonUpdateAll = JsonConvert.SerializeObject(webSockets);
+
+            var messageUpdateAll = new ServerMessage { MethodName = "OnChannelUpdate", SentBy = "Chat", Data = jsonUpdateAll };
+
+            await SendMessageToAllAsync(messageUpdateAll);
         }
     }
 }

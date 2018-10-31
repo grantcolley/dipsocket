@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DipSocket.Messages;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DipSocket.Server
 {
@@ -75,5 +77,9 @@ namespace DipSocket.Server
             return webSocketConnections.GetClientConnection(webSocket);
         }
 
+        public List<ClientConnection> GetClientConnections()
+        {
+            return webSocketConnections.GetWebSockets().Keys.ToList();
+        }
     }
 }
