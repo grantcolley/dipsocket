@@ -46,16 +46,12 @@ namespace Server
                     await SendMessageAsync(clientMessage.SendTo, messageClient);
                     break;
 
+                case MessageType.SubscribeToChannel:
                 case MessageType.CreateNewChannel:
-                    // TODO
-
+                    SubscribeToChannel(clientMessage.Data, webSocket);
                     await ChannelUpdateAsync();
                     break;
 
-                case MessageType.SubscribeToChannel:
-                    // TODO
-
-                    break;
                 case MessageType.SendToChannel:
                     // TODO
                     break;
@@ -72,11 +68,11 @@ namespace Server
 
         private async Task ChannelUpdateAsync()
         {
-            var webSockets = GetClientConnections();
+            var serverConnections = GetServerConnections();
 
-            var jsonUpdateAll = JsonConvert.SerializeObject(webSockets);
+            var serverConnectionsJson = JsonConvert.SerializeObject(serverConnections);
 
-            var messageUpdateAll = new ServerMessage { MethodName = "OnChannelUpdate", SentBy = "Chat", Data = jsonUpdateAll };
+            var messageUpdateAll = new ServerMessage { MethodName = "OnChannelUpdate", SentBy = "Chat", Data = serverConnectionsJson };
 
             await SendMessageToAllAsync(messageUpdateAll);
         }

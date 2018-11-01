@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 using DipSocket.Messages;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Concurrent;
 
 namespace DipSocket.Server
 {
     public abstract class WebSocketServer
     {
         private WebSocketServerConnections webSocketConnections = new WebSocketServerConnections();
+        private ConcurrentDictionary<string, List<ClientConnection>> channels = new ConcurrentDictionary<string, List<ClientConnection>>();
 
         public abstract Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer);
 
@@ -72,6 +74,13 @@ namespace DipSocket.Server
             }
         }
 
+        public void SubscribeToChannel(string channel, WebSocket webSocket)
+        {
+            var clientConnection = GetClientConnection(webSocket);
+            var clientConnections = channels.GetOrAdd(channel, new List<ClientConnection>());
+            clientConnections.Add(clientConnection);
+        }
+
         public ClientConnection GetClientConnection(WebSocket webSocket)
         {
             return webSocketConnections.GetClientConnection(webSocket);
@@ -80,6 +89,15 @@ namespace DipSocket.Server
         public List<ClientConnection> GetClientConnections()
         {
             return webSocketConnections.GetWebSockets().Keys.ToList();
+        }
+
+        public ServerConnections GetServerConnections()
+        {
+            return new ServerConnections
+            {
+                ClientConnections = GetClientConnections(),
+                Channels = new List<KeyValuePair<string, List<ClientConnection>>>(channels.ToList())
+            };
         }
     }
 }

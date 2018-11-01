@@ -155,7 +155,7 @@ namespace Client.ViewModel
 
         private async void OnConnect(object arg)
         {
-            if (arg != null
+            if (arg == null
                 || string.IsNullOrWhiteSpace(arg.ToString()))
             {
                 Errors.Add(new Error { Message = "A user name is required to connect to Chat", Verbose = "A user name is required to connect to Chat" });
@@ -186,15 +186,15 @@ namespace Client.ViewModel
                 {
                     lock (connectionsLock)
                     {
-                        var conns = JsonConvert.DeserializeObject<List<ClientConnection>>(result.Data);
+                        var serverConnections = JsonConvert.DeserializeObject<ServerConnections>(result.Data);
 
-                        var removals = Connections.Where(c => !conns.Any(nc => nc.Name.Equals(c)));
+                        var removals = Connections.Where(c => !serverConnections.ClientConnections.Any(nc => nc.Name.Equals(c)));
                         foreach (var removal in removals)
                         {
                             Connections.Remove(removal);
                         }
 
-                        var additions = conns.Where(a => !Connections.Any(c => c.Name.Equals(a.Name) && !a.Name.Equals(ClientConnection.Name)));
+                        var additions = serverConnections.ClientConnections.Where(a => !Connections.Any(c => c.Name.Equals(a.Name) && !a.Name.Equals(ClientConnection.Name)));
                         if(additions.Any())
                         {
                             foreach (var addition in additions)
