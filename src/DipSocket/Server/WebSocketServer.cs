@@ -7,20 +7,35 @@ using System.Threading.Tasks;
 using DipSocket.Messages;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Concurrent;
 
 namespace DipSocket.Server
 {
     public abstract class WebSocketServer
     {
-        private WebSocketServerConnections webSocketConnections = new WebSocketServerConnections();
-        private ConcurrentDictionary<string, List<ClientConnection>> channels = new ConcurrentDictionary<string, List<ClientConnection>>();
+        private WebSocketConnectionManager webSocketConnectionManager = new WebSocketConnectionManager();
+
+        /// <summary>
+        /// Creates a new instance of the WebSocketServer.
+        /// </summary>
+        protected WebSocketServer()
+        {
+            webSocketConnectionManager = new WebSocketConnectionManager();
+        }
+
+        /// <summary>
+        /// Creates a new instance of the WebSocketServer.
+        /// </summary>
+        /// <param name="webSocketConnectionManager">An instance of the <see cref="WebSocketConnectionManager"/>. Use when injecting a singleton is preferred.</param>
+        protected WebSocketServer(WebSocketConnectionManager webSocketConnectionManager)
+        {
+            this.webSocketConnectionManager = webSocketConnectionManager;
+        }
 
         public abstract Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer);
 
         public virtual async Task OnClientConnectAsync(string clientName, WebSocket websocket)
         {
-            await Task.Run(() => { webSocketConnections.TryAddWebSocket(clientName, websocket); });
+            await Task.Run(() => { webSocketConnectionManager.TryAddWebSocket(clientName, websocket); });
         }
 
         public virtual async Task OnClientDisonnectAsync(WebSocket webSocket)
@@ -28,7 +43,7 @@ namespace DipSocket.Server
             await Task.Run(() =>
             {
                 webSocket.Dispose();
-                return webSocketConnections.TryRemoveWebSocket(webSocket);
+                return webSocketConnectionManager.TryRemoveWebSocket(webSocket);
             });
         }
 
@@ -47,15 +62,15 @@ namespace DipSocket.Server
                 .ConfigureAwait(false); 
         }
 
-        public async Task SendMessageAsync(ClientConnection clientConnection, ServerMessage message)
+        public async Task SendMessageAsync(Connection clientConnection, ServerMessage message)
         {
-            var webSocket = webSocketConnections.GetWebSocket(clientConnection);
+            var webSocket = webSocketConnectionManager.GetWebSocket(clientConnection);
             await SendMessageAsync(webSocket, message).ConfigureAwait(false);
         }
 
         public async Task SendMessageAsync(string clientName, ServerMessage message)
         {
-            var webSocket = webSocketConnections.GetWebSocket(clientName);
+            var webSocket = webSocketConnectionManager.GetWebSocket(clientName);
             if (webSocket != null)
             {
                 await SendMessageAsync(webSocket, message).ConfigureAwait(false);
@@ -64,7 +79,7 @@ namespace DipSocket.Server
 
         public async Task SendMessageToAllAsync(ServerMessage message)
         {
-            var webSockets = webSocketConnections.GetWebSockets();
+            var webSockets = webSocketConnectionManager.GetWebSockets();
 
             // TODO: run in parallel
 
@@ -76,27 +91,30 @@ namespace DipSocket.Server
 
         public void SubscribeToChannel(string channel, WebSocket webSocket)
         {
-            var clientConnection = GetClientConnection(webSocket);
-            var clientConnections = channels.GetOrAdd(channel, new List<ClientConnection>());
-            clientConnections.Add(clientConnection);
+            //var clientConnection = GetClientConnection(webSocket);
+            //var clientConnections = channels.GetOrAdd(channel, new List<Connection>());
+            //clientConnections.Add(clientConnection);
         }
 
-        public ClientConnection GetClientConnection(WebSocket webSocket)
+        public Connection GetClientConnection(WebSocket webSocket)
         {
-            return webSocketConnections.GetClientConnection(webSocket);
-        }
-
-        public List<ClientConnection> GetClientConnections()
-        {
-            return webSocketConnections.GetWebSockets().Keys.ToList();
+            return webSocketConnectionManager.GetClientConnection(webSocket);
         }
 
         public ServerConnections GetServerConnections()
         {
+            var connections = webSocketConnectionManager.GetWebSockets().Keys.ToList();
+            var channels = connections.OfType<Channel>().ToList();
+
+            foreach(var channel in channels)
+            {
+                connections.Remove(channel);
+            }
+
             return new ServerConnections
             {
-                ClientConnections = GetClientConnections(),
-                Channels = new List<KeyValuePair<string, List<ClientConnection>>>(channels.ToList())
+                Connections = connections,
+                Channels = channels
             };
         }
     }

@@ -22,7 +22,7 @@ namespace Client.ViewModel
         private bool isConnected;
         private object messagesLock;
         private object connectionsLock;
-        private ClientConnection clientConnection;
+        private Connection connection;
         private ClientWebSocketConnection clientWebSocketConnection;
         
         public ChatViewModel()
@@ -39,7 +39,7 @@ namespace Client.ViewModel
             BindingOperations.EnableCollectionSynchronization(Messages, messagesLock);
 
             connectionsLock = new object();
-            Connections = new ObservableCollection<ClientConnection>();
+            Connections = new ObservableCollection<Connection>();
             BindingOperations.EnableCollectionSynchronization(Connections, connectionsLock);
         }
 
@@ -48,7 +48,7 @@ namespace Client.ViewModel
         public ICommand ClearErrorsCommand { get; set; }
 
         public ObservableCollection<Message> Messages { get; }
-        public ObservableCollection<ClientConnection> Connections { get; }
+        public ObservableCollection<Connection> Connections { get; }
         public ObservableCollection<Error> Errors { get; set; }
 
         public bool HasErrors
@@ -69,15 +69,15 @@ namespace Client.ViewModel
             }
         }
 
-        public ClientConnection ClientConnection
+        public Connection Connection
         {
-            get { return clientConnection; }
+            get { return connection; }
             set
             {
-                if (clientConnection != value)
+                if (connection != value)
                 {
-                    clientConnection = value;
-                    OnPropertyChanged("ClientConnection");
+                    connection = value;
+                    OnPropertyChanged("Connection");
                 }
             }
         }
@@ -130,7 +130,7 @@ namespace Client.ViewModel
 
             try
             {
-                var clientMessage = new ClientMessage { SentBy = ClientConnection.Name, Data = Message, MessageType = MessageType.SendToClient };
+                var clientMessage = new ClientMessage { SentBy = Connection.Name, Data = Message, MessageType = MessageType.SendToClient };
                 await clientWebSocketConnection.SendMessageAsync(clientMessage);
 
                 Message = string.Empty;
@@ -169,8 +169,8 @@ namespace Client.ViewModel
                 clientWebSocketConnection.On("OnConnected", (result) =>
                 {
                     var message = (Message)result;
-                    ClientConnection = JsonConvert.DeserializeObject<ClientConnection>(message.Data);
-                    ConnectionMessage = $"{message.SentOn} {message.SentBy} {ClientConnection.Name} connected. Connection Id : {ClientConnection.ConnectionId}";
+                    Connection = JsonConvert.DeserializeObject<Connection>(message.Data);
+                    ConnectionMessage = $"{message.SentOn} {message.SentBy} {Connection.Name} connected. Connection Id : {Connection.ConnectionId}";
                     IsConnected = true;
                 });
 
@@ -182,19 +182,20 @@ namespace Client.ViewModel
                     }
                 });
 
-                clientWebSocketConnection.On("OnChannelUpdate", (result) =>
+                clientWebSocketConnection.On("OnChatUpdate", (result) =>
                 {
                     lock (connectionsLock)
                     {
                         var serverConnections = JsonConvert.DeserializeObject<ServerConnections>(result.Data);
+                        var allConnections = serverConnections.Channels.Union(serverConnections.Connections).OrderBy(c => c.Name);
 
-                        var removals = Connections.Where(c => !serverConnections.ClientConnections.Any(nc => nc.Name.Equals(c)));
+                        var removals = Connections.Where(c => !allConnections.Any(nc => nc.Name.Equals(c)));
                         foreach (var removal in removals)
                         {
                             Connections.Remove(removal);
                         }
 
-                        var additions = serverConnections.ClientConnections.Where(a => !Connections.Any(c => c.Name.Equals(a.Name) && !a.Name.Equals(ClientConnection.Name)));
+                        var additions = allConnections.Where(a => !Connections.Any(c => c.Name.Equals(a.Name) && !a.Name.Equals(Connection.Name)));
                         if(additions.Any())
                         {
                             foreach (var addition in additions)
@@ -232,7 +233,7 @@ namespace Client.ViewModel
 
             try
             {
-                var clientMessage = new ClientMessage { SentBy = ClientConnection.Name, Data = NewChannel, MessageType = MessageType.CreateNewChannel };
+                var clientMessage = new ClientMessage { SentBy = Connection.Name, Data = NewChannel, MessageType = MessageType.CreateNewChannel };
 
                 await clientWebSocketConnection.SendMessageAsync(clientMessage);
 

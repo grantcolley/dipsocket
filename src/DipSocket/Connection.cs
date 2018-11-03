@@ -1,6 +1,6 @@
 ﻿namespace DipSocket
 {
-    public class ClientConnection
+    public class Connection
     {
         public string Name { get; set; }
         public string ConnectionId { get; set; }

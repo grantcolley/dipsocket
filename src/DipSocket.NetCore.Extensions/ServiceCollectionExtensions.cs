@@ -8,7 +8,7 @@ namespace DipSocket.NetCore.Extensions
     {
         public static IServiceCollection AddDipSocket(this IServiceCollection servicesCollection)
         {
-            servicesCollection.AddTransient<WebSocketServerConnections>();
+            servicesCollection.AddTransient<WebSocketConnectionManager>();
 
             foreach (var type in Assembly.GetEntryAssembly().ExportedTypes)
             {

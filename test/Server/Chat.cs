@@ -8,8 +8,13 @@ using Newtonsoft.Json;
 
 namespace Server
 {
-    public class ChatServer : WebSocketServer
+    public class Chat : WebSocketServer
     {
+        public Chat(WebSocketConnectionManager webSocketConnectionManager)
+            : base(webSocketConnectionManager)
+        {
+        }
+
         public async override Task OnClientConnectAsync(string clientName, WebSocket websocket)
         {
             await base.OnClientConnectAsync(clientName, websocket);

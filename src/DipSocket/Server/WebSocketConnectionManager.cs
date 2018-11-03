@@ -2,36 +2,34 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: InternalsVisibleTo("DipSocket.NetCore.Extensions")]
 namespace DipSocket.Server
 {
-    internal class WebSocketServerConnections
+    public sealed class WebSocketConnectionManager
     {
-        private ConcurrentDictionary<ClientConnection, WebSocket> webSockets;
+        private ConcurrentDictionary<Connection, WebSocket> connections;
 
-        internal WebSocketServerConnections()
+        public WebSocketConnectionManager()
         {
-            webSockets = new ConcurrentDictionary<ClientConnection, WebSocket>();
+            connections = new ConcurrentDictionary<Connection, WebSocket>();
         }
 
         internal WebSocket GetWebSocket(string clientName)
         {
-            var clientConnection = webSockets.Keys.FirstOrDefault(c => c.Name.Equals(clientName));
+            var clientConnection = connections.Keys.FirstOrDefault(c => c.Name.Equals(clientName));
             return GetWebSocket(clientConnection);
         }
 
-        internal WebSocket GetWebSocket(ClientConnection clientConnection)
+        internal WebSocket GetWebSocket(Connection clientConnection)
         {
             if(clientConnection == null)
             {
                 return null;
             }
 
-            if (webSockets.TryGetValue(clientConnection, out WebSocket webSocket))
+            if (connections.TryGetValue(clientConnection, out WebSocket webSocket))
             {
                 return webSocket;
             }
@@ -39,16 +37,16 @@ namespace DipSocket.Server
             return null;
         }
 
-        internal ConcurrentDictionary<ClientConnection, WebSocket> GetWebSockets()
+        internal ConcurrentDictionary<Connection, WebSocket> GetWebSockets()
         {
-            return webSockets;
+            return connections;
         }
 
-        internal ClientConnection GetClientConnection(WebSocket webSocket)
+        internal Connection GetClientConnection(WebSocket webSocket)
         {
-            if(webSockets.Values.Contains(webSocket))
+            if(connections.Values.Contains(webSocket))
             {
-                return webSockets.FirstOrDefault(ws => ws.Value.Equals(webSocket)).Key;
+                return connections.FirstOrDefault(ws => ws.Value.Equals(webSocket)).Key;
             }
 
             return null;
@@ -61,8 +59,8 @@ namespace DipSocket.Server
                 return false;
             }
 
-            var clientConnection = new ClientConnection { Name = clientName, ConnectionId = Guid.NewGuid().ToString() };
-            return webSockets.TryAdd(clientConnection, webSocket);
+            var clientConnection = new Connection { Name = clientName, ConnectionId = Guid.NewGuid().ToString() };
+            return connections.TryAdd(clientConnection, webSocket);
         }
 
         internal async Task TryRemoveWebSocket(WebSocket webSocket)
@@ -70,7 +68,7 @@ namespace DipSocket.Server
             var clientConnection = GetClientConnection(webSocket);
 
             WebSocket socket;
-            if (webSockets.TryRemove(clientConnection, out socket))
+            if (connections.TryRemove(clientConnection, out socket))
             {
                 await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by the WebSocketController", CancellationToken.None);
             }
