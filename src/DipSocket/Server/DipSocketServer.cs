@@ -10,30 +10,30 @@ using System.Linq;
 namespace DipSocket.Server
 {
     /// <summary>
-    /// The abstract <see cref="WebSocketServer"/> base class.
+    /// The abstract <see cref="DipSocketServer"/> base class.
     /// </summary>
-    public abstract class WebSocketServer
+    public abstract class DipSocketServer
     {
         private ConnectionManager connectionManager;
         private ChannelManager channelManager;
 
         /// <summary>
-        /// Creates a new instance of the <see cref="WebSocketServer"/> base class.
+        /// Creates a new instance of the <see cref="DipSocketServer"/> base class.
         /// </summary>
-        protected WebSocketServer()
+        protected DipSocketServer()
         {
             connectionManager = new ConnectionManager();
             channelManager = new ChannelManager();
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="WebSocketServer"/>.
+        /// Creates a new instance of the <see cref="DipSocketServer"/>.
         /// Use when injecting singleton <see cref="ConnectionManager"/> 
         /// and <see cref="ChannelManager"/> is preferred.
         /// </summary>
         /// <param name="connectionManager">An instance of the <see cref="ConnectionManager"/>.</param>
         /// <param name="channelManager">An instance of the <see cref="ChannelManager"/>.</param>
-        protected WebSocketServer(ConnectionManager connectionManager, ChannelManager channelManager)
+        protected DipSocketServer(ConnectionManager connectionManager, ChannelManager channelManager)
         {
             this.connectionManager = connectionManager;
             this.channelManager = channelManager;
@@ -61,18 +61,20 @@ namespace DipSocket.Server
         /// calls the web sockets CloseAsync method and then disposes it.
         /// </summary>
         /// <param name="webSocket">The <see cref="WebSocket"/> to remove.</param>
-        /// <returns>The connectionId for the <see cref="WebSocket"/>.</returns>
-        public virtual async Task<string> OnClientDisonnectAsync(WebSocket webSocket)
+        /// <returns>The <see cref="Connection"/> for the <see cref="WebSocket"/>.</returns>
+        public virtual async Task<Connection> OnClientDisonnectAsync(WebSocket webSocket)
         {
-            if (connectionManager.TryRemoveWebSocket(webSocket, out string connectionId))
+            if (connectionManager.TryRemoveWebSocketConnection(webSocket, out Connection connection))
             {
+                connection.Channels.All(c => c.Value.Connections.TryRemove(connection.ConnectionId, out Connection removedConnection));
+
                 await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, 
-                    $"WebSocket {connectionId} closed by {typeof(WebSocketServer).Name}", 
+                    $"WebSocket {connection.ConnectionId} closed by {typeof(DipSocketServer).Name}", 
                     CancellationToken.None).ConfigureAwait(false);
 
                 webSocket.Dispose();
-
-                return connectionId;
+                
+                return connection;
             }
 
             return null;
@@ -82,12 +84,12 @@ namespace DipSocket.Server
         /// Adds the <see cref="WebSocket"/> to the <see cref="ConnectionManager"/>'s web sockets dictionary.
         /// </summary>
         /// <param name="websocket">The <see cref="WebSocket"/> to add.</param>
-        /// <returns>The connectionId for the <see cref="WebSocket"/>.</returns>
-        public virtual Task<string> AddWebSocketAsync(WebSocket websocket)
+        /// <returns>The <see cref="Connection"/> for the <see cref="WebSocket"/>.</returns>
+        public virtual Task<Connection> AddWebSocketAsync(WebSocket websocket)
         {
-            if (connectionManager.TryAddWebSocket(websocket, out string connectionId))
+            if (connectionManager.TryAddWebSocketConnection(websocket, out Connection connection))
             {
-                return Task.FromResult<string>(connectionId);
+                return Task.FromResult<Connection>(connection);
             }
 
             return null;
@@ -101,10 +103,10 @@ namespace DipSocket.Server
         /// <returns>A <see cref="Task"/>.</returns>
         public async Task SendMessageAsync(string connectionId, ServerMessage message)
         {
-            var webSocket = connectionManager.GetWebSocket(connectionId);
-            if (webSocket != null)
+            var connection = connectionManager.GetConnection(connectionId);
+            if (connection != null)
             {
-                await SendMessageAsync(webSocket, message).ConfigureAwait(false);
+                await SendMessageAsync(connection.WebSocket, message).ConfigureAwait(false);
             }
         }
 
@@ -117,9 +119,30 @@ namespace DipSocket.Server
         {
             var json = JsonConvert.SerializeObject(message);
 
-            var webSocketClients = connectionManager.GetWebSocketsConnections();
+            var connections = connectionManager.GetConnections();
 
-            var webSockets = from websocket in webSocketClients.Values.ToArray() select SendMessageAsync(websocket, json);
+            var webSockets = from connection in connections.Values.ToArray() select SendMessageAsync(connection.WebSocket, json);
+
+            await Task.WhenAll(webSockets.ToArray());
+        }
+
+        /// <summary>
+        /// Send a message to all <see cref="WebSocket"/> clients.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        /// <returns>A <see cref="Task"/>.</returns>
+        public async Task SendMessageToChannelAsync(string channelName, ServerMessage message)
+        {
+            var json = JsonConvert.SerializeObject(message);
+
+            var channel = channelManager.GetChannel(channelName);
+
+            if(channel == null)
+            {
+                return;
+            }
+
+            var webSockets = from connection in channel.Connections.Values.ToArray() select SendMessageAsync(connection.WebSocket, json);
 
             await Task.WhenAll(webSockets.ToArray());
         }
@@ -195,10 +218,11 @@ namespace DipSocket.Server
         /// Remove a <see cref="Channel"/>.
         /// </summary>
         /// <param name="channelName">The <see cref="Channel"/> to remove.</param>
+        /// <param name="channel">The removed channel.</param>
         /// <returns>True if successful, else false.</returns>
-        public bool TryRemoveChannel(string channelName)
+        public bool TryRemoveChannel(string channelName, out Channel channel)
         {
-            return channelManager.TryRemoveChannel(channelName);
+            return channelManager.TryRemoveChannel(channelName, out channel);
         }
     }
 }

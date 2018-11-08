@@ -27,9 +27,12 @@ namespace DipSocket.Server
                 return new Channel { Name = name};
             });
 
-            channel.Connections.Add(connection);
+            if (channel.Connections.TryAdd(connection.ConnectionId, connection))
+            {
+                return channel;
+            }
 
-            return channel;
+            return null;
         }
 
         internal Channel UnsubscribeFromChannel(string channelName, Connection connection)
@@ -39,17 +42,22 @@ namespace DipSocket.Server
                 return null;
             }
 
-            var result = channels.TryGetValue(channelName, out Channel channel);
-
-            channel.Connections.Remove(connection);
-
-            if (!channel.Connections.Any())
+            if (channels.TryGetValue(channelName, out Channel channel))
             {
-                return channel;
+                channel.Connections.TryRemove(connection.ConnectionId, out Connection removedConnection);
+
+                if (channel.Connections.Any())
+                {
+                    return channel;
+                }
+
+                if (TryRemoveChannel(channelName, out Channel removedChannel))
+                {
+                    return removedChannel;
+                }
             }
 
-            channels.TryRemove(channelName, out Channel removedChannel);
-            return removedChannel;
+            return null;
         }
 
         internal Channel GetChannel(string channelName)
@@ -62,11 +70,9 @@ namespace DipSocket.Server
             return null;
         }
 
-        internal bool TryRemoveChannel(string channelName)
+        internal bool TryRemoveChannel(string channelName, out Channel channel)
         {
-            var result = channels.TryRemove(channelName, out Channel channel);
-            channel?.Connections.Clear();
-            return result;
+            return channels.TryRemove(channelName, out channel);
         }
     }
 }

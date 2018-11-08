@@ -8,29 +8,27 @@ using Newtonsoft.Json;
 
 namespace Server
 {
-    public class Chat : WebSocketServer
+    public class Chat : DipSocketServer
     {
-        public Chat(WebSocketConnectionManager webSocketConnectionManager)
+        public Chat(ConnectionManager webSocketConnectionManager)
             : base(webSocketConnectionManager)
         {
         }
 
-        public async override Task OnClientConnectAsync(string clientName, WebSocket websocket)
+        public async override Task OnClientConnectAsync(WebSocket websocket, string clientId)
         {
-            await base.OnClientConnectAsync(clientName, websocket);
-
-            var clientConnection = GetClientConnection(websocket);
-
-            if (clientConnection != null)
+            if (string.IsNullOrWhiteSpace(clientId))
             {
-                var jsonConnected = JsonConvert.SerializeObject(clientConnection);
-
-                var messageConnected = new ServerMessage { MethodName = "OnConnected", SentBy = "Chat", Data = jsonConnected };
-
-                await SendMessageAsync(websocket, messageConnected);
-
-                await ChannelUpdateAsync();
+                throw new ArgumentNullException("clientId cannot be null or empty.");
             }
+
+            var connectionId = await base.OnClientConnectAsync(websocket);
+
+            var messageConnected = new ServerMessage { MethodName = "OnConnected", SentBy = "Chat", Data = jsonConnected };
+
+            await SendMessageAsync(websocket, messageConnected);
+
+            await ChannelUpdateAsync();
         }
 
         public async override Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer)
@@ -53,8 +51,15 @@ namespace Server
 
                 case MessageType.SubscribeToChannel:
                 case MessageType.CreateNewChannel:
-                    SubscribeToChannel(clientMessage.Data, webSocket);
-                    await ChannelUpdateAsync();
+                    if(TrySubscribeToChannel(clientMessage.Data, webSocket))
+                    {
+                        await ChannelUpdateAsync();
+                    }
+                    else
+                    {
+                        // TODO
+                    }
+
                     break;
 
                 case MessageType.SendToChannel:

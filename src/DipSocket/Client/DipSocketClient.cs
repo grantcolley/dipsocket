@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DipSocket.Client
 {
-    public class ClientWebSocketConnection
+    public class DipSocketClient
     {
         private ClientWebSocket clientWebSocket;
         private Dictionary<string, Action<ServerMessage>> registeredMethods;
@@ -19,14 +19,14 @@ namespace DipSocket.Client
 
         public string ConnectionId { get; private set; }
         public string Url { get; private set; }
-        public string Client { get; private set; }
+        public string ClientId { get; private set; }
 
         public WebSocketState State { get { return clientWebSocket.State; } }
 
-        public ClientWebSocketConnection(string url, string client)
+        public DipSocketClient(string url, string clientId)
         {
             Url = url;
-            Client = client;
+            ClientId = clientId;
 
             clientWebSocket = new ClientWebSocket();
             registeredMethods = new Dictionary<string, Action<ServerMessage>>();
@@ -56,7 +56,7 @@ namespace DipSocket.Client
 
         public async Task StartAsync()
         {
-            await clientWebSocket.ConnectAsync(new Uri($"{Url}?client={Client}"), CancellationToken.None);
+            await clientWebSocket.ConnectAsync(new Uri($"{Url}?clientId={ClientId}"), CancellationToken.None);
 
             RunReceiving();
         }

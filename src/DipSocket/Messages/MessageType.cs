@@ -2,11 +2,11 @@
 {
     public enum MessageType
     {
-        SendToAll,
-        SendToClient,
         CreateNewChannel,
-        SubscribeToChannel,
+        SendToAll,
         SendToChannel,
+        SendToClient,
+        SubscribeToChannel,
         UnsubscribeFromChannel
     }
 }

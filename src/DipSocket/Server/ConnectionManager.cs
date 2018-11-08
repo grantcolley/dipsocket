@@ -6,31 +6,30 @@ namespace DipSocket.Server
 {
     /// <summary>
     /// The <see cref="ConnectionManager"/> class stores and manages access to a 
-    /// <see cref="ConcurrentDictionary{string, WebSocket}"/> of client <see cref="WebSocket"/>'s.
+    /// <see cref="ConcurrentDictionary{string, Connection}"/> of client <see cref="WebSocket"/>'s.
     /// </summary>
     public sealed class ConnectionManager
     {
-        private readonly ConcurrentDictionary<string, WebSocket> webSockets;
-        private object connectionLock = new object();
+        private readonly ConcurrentDictionary<string, Connection> connections;
 
         /// <summary>
         /// Creates a new instance of the <see cref="ConnectionManager"/> class.
         /// </summary>
         public ConnectionManager()
         {
-            webSockets = new ConcurrentDictionary<string, WebSocket>();
+            connections = new ConcurrentDictionary<string, Connection>();
         }
 
-        internal ConcurrentDictionary<string, WebSocket> GetWebSocketsConnections()
+        internal ConcurrentDictionary<string, Connection> GetConnections()
         {
-            return webSockets;
+            return connections;
         }
 
-        internal WebSocket GetWebSocket(string connectionId)
+        internal Connection GetConnection(string connectionId)
         {
-            if (webSockets.TryGetValue(connectionId, out WebSocket webSocket))
+            if (connections.TryGetValue(connectionId, out Connection connection))
             {
-                return webSocket;
+                return connection;
             }
 
             return null;
@@ -38,9 +37,9 @@ namespace DipSocket.Server
 
         internal string GetConnectionId(WebSocket webSocket)
         {
-            foreach(var kvp in webSockets)
+            foreach(var kvp in connections)
             {
-                if(kvp.Value == webSocket)
+                if(kvp.Value.WebSocket == webSocket)
                 {
                     return kvp.Key;
                 }
@@ -49,16 +48,17 @@ namespace DipSocket.Server
             return null;
         }
 
-        internal bool TryAddWebSocket(WebSocket webSocket, out string connectionId)
+        internal bool TryAddWebSocketConnection(WebSocket webSocket, out Connection connection)
         {
-            connectionId = Guid.NewGuid().ToString();
-            return webSockets.TryAdd(connectionId, webSocket);
+            var connectionId = Guid.NewGuid().ToString();
+            connection = new Connection(webSocket) { ConnectionId = connectionId };
+            return connections.TryAdd(connectionId, connection);
         }
 
-        internal bool TryRemoveWebSocket(WebSocket webSocket, out string connectionId)
+        internal bool TryRemoveWebSocketConnection(WebSocket webSocket, out Connection connection)
         {
-            connectionId = GetConnectionId(webSocket);
-            return webSockets.TryRemove(connectionId, out WebSocket socket);
+            var connectionId = GetConnectionId(webSocket);
+            return connections.TryRemove(connectionId, out connection);
         }
     }
 }
