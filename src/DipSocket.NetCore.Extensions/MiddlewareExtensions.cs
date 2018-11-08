@@ -6,12 +6,13 @@ namespace DipSocket.NetCore.Extensions
 {
     public static class MiddlewareExtensions
     {
-        public static IApplicationBuilder UseDipSocket<T>(this IApplicationBuilder builder, string route) where T : WebSocketServer
+        public static IApplicationBuilder UseDipSocket<T>(this IApplicationBuilder builder, string route) where T : DipSocketServer
         {
             builder.UseWebSockets();
 
-            var webSocketConnectionManager = (WebSocketConnectionManager)builder.ApplicationServices.GetService(typeof(WebSocketConnectionManager));
-            var webSocketServer = Activator.CreateInstance(typeof(T), webSocketConnectionManager);
+            var connectionManager = (ConnectionManager)builder.ApplicationServices.GetService(typeof(ConnectionManager));
+            var channelManager = (ChannelManager)builder.ApplicationServices.GetService(typeof(ChannelManager));
+            var webSocketServer = Activator.CreateInstance(typeof(T), new object[] { connectionManager, channelManager });
             return builder.Map(route, (applicationBuilder) => applicationBuilder.UseMiddleware<DipSocketMiddleware>(webSocketServer));
         }
     }

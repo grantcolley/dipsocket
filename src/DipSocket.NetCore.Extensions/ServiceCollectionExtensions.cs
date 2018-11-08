@@ -8,11 +8,12 @@ namespace DipSocket.NetCore.Extensions
     {
         public static IServiceCollection AddDipSocket(this IServiceCollection servicesCollection)
         {
-            servicesCollection.AddTransient<WebSocketConnectionManager>();
+            servicesCollection.AddTransient<ConnectionManager>();
+            servicesCollection.AddTransient<ChannelManager>();
 
             foreach (var type in Assembly.GetEntryAssembly().ExportedTypes)
             {
-                if (type.GetTypeInfo().BaseType.Equals(typeof(WebSocketServer)))
+                if (type.GetTypeInfo().BaseType.Equals(typeof(DipSocketServer)))
                 {
                     servicesCollection.AddSingleton(type);
                 }

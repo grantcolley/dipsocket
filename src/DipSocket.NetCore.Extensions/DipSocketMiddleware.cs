@@ -11,9 +11,9 @@ namespace DipSocket.NetCore.Extensions
 {
     public class DipSocketMiddleware
     {
-        private readonly WebSocketServer webSocketServer;
+        private readonly DipSocketServer webSocketServer;
 
-        public DipSocketMiddleware(RequestDelegate next, WebSocketServer webSocketServer)
+        public DipSocketMiddleware(RequestDelegate next, DipSocketServer webSocketServer)
         {
             this.webSocketServer = webSocketServer;
         }
@@ -26,8 +26,8 @@ namespace DipSocket.NetCore.Extensions
                 {
                     var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
-                    var clientName = context.Request.Query["client"];
-                    await webSocketServer.OnClientConnectAsync(clientName, webSocket);
+                    var clientId = context.Request.Query["clientId"];
+                    await webSocketServer.OnClientConnectAsync(webSocket, clientId);
 
                     await Receive(webSocket);
                 }
