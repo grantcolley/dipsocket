@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.WebSockets;
 
 namespace DipSocket.Server
@@ -20,9 +22,14 @@ namespace DipSocket.Server
             connections = new ConcurrentDictionary<string, Connection>();
         }
 
-        internal ConcurrentDictionary<string, Connection> GetConnections()
+        internal List<Connection> GetConnections()
         {
-            return connections;
+            return connections.Values.ToList();
+        }
+
+        internal List<ConnectionInfo> GetConnectionInfos()
+        {
+            return connections.Values.Select(c => c.GetConnectionInfo()).ToList();
         }
 
         internal Connection GetConnection(string connectionId)
@@ -30,6 +37,19 @@ namespace DipSocket.Server
             if (connections.TryGetValue(connectionId, out Connection connection))
             {
                 return connection;
+            }
+
+            return null;
+        }
+
+        internal Connection GetConnection(WebSocket webSocket)
+        {
+            foreach (var kvp in connections)
+            {
+                if (kvp.Value.WebSocket == webSocket)
+                {
+                    return kvp.Value;
+                }
             }
 
             return null;

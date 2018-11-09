@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DipSocket.Messages;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace DipSocket.Server
 {
@@ -121,20 +122,19 @@ namespace DipSocket.Server
 
             var connections = connectionManager.GetConnections();
 
-            var webSockets = from connection in connections.Values.ToArray() select SendMessageAsync(connection.WebSocket, json);
+            var webSockets = from connection in connections select SendMessageAsync(connection.WebSocket, json);
 
-            await Task.WhenAll(webSockets.ToArray());
+            await Task.WhenAll(webSockets.ToArray()).ConfigureAwait(false); ;
         }
 
         /// <summary>
         /// Send a message to all <see cref="WebSocket"/> clients.
         /// </summary>
+        /// <param name="channelName">The channel name.</param>
         /// <param name="message">The message to send.</param>
         /// <returns>A <see cref="Task"/>.</returns>
         public async Task SendMessageToChannelAsync(string channelName, ServerMessage message)
         {
-            var json = JsonConvert.SerializeObject(message);
-
             var channel = channelManager.GetChannel(channelName);
 
             if(channel == null)
@@ -142,9 +142,27 @@ namespace DipSocket.Server
                 return;
             }
 
+            await SendMessageToChannelAsync(channel, message).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Send a message to all <see cref="WebSocket"/> clients.
+        /// </summary>
+        /// <param name="channelName">The channel name.</param>
+        /// <param name="message">The message to send.</param>
+        /// <returns>A <see cref="Task"/>.</returns>
+        public async Task SendMessageToChannelAsync(Channel channel, ServerMessage message)
+        {
+            if (channel == null)
+            {
+                return;
+            }
+
+            var json = JsonConvert.SerializeObject(message);
+
             var webSockets = from connection in channel.Connections.Values.ToArray() select SendMessageAsync(connection.WebSocket, json);
 
-            await Task.WhenAll(webSockets.ToArray());
+            await Task.WhenAll(webSockets.ToArray()).ConfigureAwait(false); ;
         }
 
         /// <summary>
@@ -157,7 +175,7 @@ namespace DipSocket.Server
         {
             var json = JsonConvert.SerializeObject(message);
 
-            await SendMessageAsync(webSocket, json); 
+            await SendMessageAsync(webSocket, json).ConfigureAwait(false); ; 
         }
 
         /// <summary>
@@ -180,14 +198,15 @@ namespace DipSocket.Server
         }
 
         /// <summary>
-        /// Subscribe to a <see cref="Channel"/>. If the 
-        /// <see cref="Channel"/> doesn't exist then create one.
+        /// Subscribe to a <see cref="Channel"/>. If the <see cref="Channel"/> 
+        /// doesn't exist then create one.
         /// </summary>
         /// <param name="channelName">The channel to subscribe to.</param>
-        /// <param name="connection">The connection subscribing to the channel.</param>
+        /// <param name="webSocket">The connection subscribing to the channel.</param>
         /// <returns>The <see cref="Channel"/>.</returns>
-        public Channel SubscribeToChannel(string channelName, Connection connection)
+        public Channel SubscribeToChannel(string channelName, WebSocket webSocket)
         {
+            var connection = connectionManager.GetConnection(webSocket);
             return channelManager.SubscribeToChannel(channelName, connection);
         }
 
@@ -197,10 +216,11 @@ namespace DipSocket.Server
         /// then remove the <see cref="Channel"/>.
         /// </summary>
         /// <param name="channelName">The channel to unsubscribe from.</param>
-        /// <param name="connection">The connection unsubscribing from the channel.</param>
+        /// <param name="webSocket">The connection unsubscribing to the channel.</param>
         /// <returns>The <see cref="Channel"/>.</returns>
-        public Channel UnsubscribeFromChannel(string channelName, Connection connection)
+        public Channel UnsubscribeFromChannel(string channelName, WebSocket webSocket)
         {
+            var connection = connectionManager.GetConnection(webSocket);
             return channelManager.UnsubscribeFromChannel(channelName, connection);
         }
 
@@ -223,6 +243,30 @@ namespace DipSocket.Server
         public bool TryRemoveChannel(string channelName, out Channel channel)
         {
             return channelManager.TryRemoveChannel(channelName, out channel);
+        }
+
+        /// <summary>
+        /// Get information about active <see cref="DipSocketServer"/> connections and channels.
+        /// </summary>
+        /// <returns></returns>
+        public ServerInfo GetServerInfo()
+        {
+            var serverInfo = new ServerInfo();
+            serverInfo.Channels = GetChannelInfos();
+            serverInfo.Connections = GetConnectionInfos();
+            return serverInfo;
+        }
+
+        private List<ChannelInfo> GetChannelInfos()
+        {
+            var channelInfos = channelManager.GetChannelInfos();
+            return channelInfos;
+        }
+
+        private List<ConnectionInfo> GetConnectionInfos()
+        {
+            var connectionInfos = connectionManager.GetConnectionInfos();
+            return connectionInfos;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DipSocket.Server
@@ -18,6 +19,16 @@ namespace DipSocket.Server
         public ChannelManager()
         {
             channels = new ConcurrentDictionary<string, Channel>();
+        }
+
+        internal List<Channel> GetChannels()
+        {
+            return channels.Values.ToList();
+        }
+
+        internal List<ChannelInfo> GetChannelInfos()
+        {
+            return channels.Values.Select(c => c.GetChannelInfo()).ToList();
         }
 
         internal Channel SubscribeToChannel(string channelName, Connection connection)

@@ -10,8 +10,8 @@ namespace Server
 {
     public class Chat : DipSocketServer
     {
-        public Chat(ConnectionManager webSocketConnectionManager)
-            : base(webSocketConnectionManager)
+        public Chat(ConnectionManager webSocketConnectionManager, ChannelManager channelManager)
+            : base(webSocketConnectionManager, channelManager)
         {
         }
 
@@ -22,13 +22,28 @@ namespace Server
                 throw new ArgumentNullException("clientId cannot be null or empty.");
             }
 
-            var connectionId = await base.OnClientConnectAsync(websocket);
+            var connection = await base.AddWebSocketAsync(websocket).ConfigureAwait(false);
 
-            var messageConnected = new ServerMessage { MethodName = "OnConnected", SentBy = "Chat", Data = jsonConnected };
+            if (connection != null)
+            {
+                connection.Name = clientId;
 
-            await SendMessageAsync(websocket, messageConnected);
+                var connectionInfo = connection.GetConnectionInfo();
 
-            await ChannelUpdateAsync();
+                var json = JsonConvert.SerializeObject(connectionInfo);
+
+                var serverMessage = new ServerMessage { MethodName = "OnConnected", SentBy = "Chat", Data = json };
+
+                await SendMessageAsync(websocket, serverMessage).ConfigureAwait(false);
+
+                await ChannelUpdateAsync().ConfigureAwait(false); ;
+            }
+            else
+            {
+                var serverMessage = new ServerMessage { MethodName = "OnConnected", SentBy = "Chat", Data = $"{clientId} failed to connect." };
+
+                await SendMessageAsync(websocket, serverMessage).ConfigureAwait(false); ;
+            }
         }
 
         public async override Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer)
@@ -41,34 +56,41 @@ namespace Server
             {
                 case MessageType.SendToAll:
                     var messageAll = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
-                    await SendMessageToAllAsync(messageAll);
+                    await SendMessageToAllAsync(messageAll).ConfigureAwait(false);
                     break;
 
                 case MessageType.SendToClient:
                     var messageClient = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
-                    await SendMessageAsync(clientMessage.SendTo, messageClient);
+                    await SendMessageAsync(clientMessage.SendTo, messageClient).ConfigureAwait(false);
                     break;
 
                 case MessageType.SubscribeToChannel:
                 case MessageType.CreateNewChannel:
-                    if(TrySubscribeToChannel(clientMessage.Data, webSocket))
+                    var channel = SubscribeToChannel(clientMessage.Data, webSocket);
+                    if (channel != null)
                     {
-                        await ChannelUpdateAsync();
+                        var channelInfo = channel.GetChannelInfo();
+                        var channelInfoJson = JsonConvert.SerializeObject(channelInfo);
+                        var subscribeMessage = new ServerMessage { MethodName = "OnMessageReceived", SentBy = channel.Name, Data = channelInfoJson };
+                        await SendMessageToChannelAsync(channel, subscribeMessage).ConfigureAwait(false);
+                        await ChannelUpdateAsync().ConfigureAwait(false);
                     }
                     else
                     {
-                        // TODO
+                        var subscribeMessage = new ServerMessage { MethodName = "OnMessageReceived", SentBy = "Chat", Data = $"Failed to subscribe to channel {clientMessage.Data}." };
+                        await SendMessageAsync(webSocket, subscribeMessage).ConfigureAwait(false);
                     }
 
                     break;
 
                 case MessageType.SendToChannel:
-                    // TODO
+                    var channelMessage = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
+                    await SendMessageToChannelAsync(clientMessage.SendTo, channelMessage).ConfigureAwait(false);
                     break;
 
                 case MessageType.UnsubscribeFromChannel:
-                    // TODO
-
+                    var unsubscribedChannel = UnsubscribeFromChannel(clientMessage.Data, webSocket);
+                    await ChannelUpdateAsync().ConfigureAwait(false);
                     break;
 
                 default:
@@ -78,11 +100,11 @@ namespace Server
 
         private async Task ChannelUpdateAsync()
         {
-            var serverConnections = GetServerConnections();
+            var serverInfo = GetServerInfo();
 
-            var serverConnectionsJson = JsonConvert.SerializeObject(serverConnections);
+            var json = JsonConvert.SerializeObject(serverInfo);
 
-            var messageUpdateAll = new ServerMessage { MethodName = "OnChannelUpdate", SentBy = "Chat", Data = serverConnectionsJson };
+            var messageUpdateAll = new ServerMessage { MethodName = "OnChannelUpdate", SentBy = "Chat", Data = json };
 
             await SendMessageToAllAsync(messageUpdateAll);
         }

@@ -41,7 +41,7 @@ namespace DipSocket.NetCore.Extensions
                 var response = context.Response;
                 response.ContentType = "application/json";
                 response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                await response.WriteAsync(JsonConvert.SerializeObject(ex));
+                await response.WriteAsync(JsonConvert.SerializeObject(ex)).ConfigureAwait(false);
             }
         }
 
