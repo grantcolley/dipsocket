@@ -9,15 +9,28 @@ using System.Threading.Tasks;
 
 namespace DipSocket.NetCore.Extensions
 {
+    /// <summary>
+    /// The middleware for handling requests to and responses from <see cref="DipSocketServer"/>.
+    /// </summary>
     public class DipSocketMiddleware
     {
-        private readonly DipSocketServer webSocketServer;
+        private readonly DipSocketServer dipSocketServer;
 
-        public DipSocketMiddleware(RequestDelegate next, DipSocketServer webSocketServer)
+        /// <summary>
+        /// Creates an instance of the <see cref="DipSocketMiddleware"/> class.
+        /// </summary>
+        /// <param name="next">The <see cref="RequestDelegate"/>.</param>
+        /// <param name="dipSocketServer">A specialised instance of a class inheriting <see cref="DipSocketServer"/>.</param>
+        public DipSocketMiddleware(RequestDelegate next, DipSocketServer dipSocketServer)
         {
-            this.webSocketServer = webSocketServer;
+            this.dipSocketServer = dipSocketServer;
         }
 
+        /// <summary>
+        /// Receives a request to the class inheriting <see cref="DipSocketServer"/>.
+        /// </summary>
+        /// <param name="context">The <see cref="HttpContext"/>.</param>
+        /// <returns>The response.</returns>
         public async Task Invoke(HttpContext context)
         {
             try
@@ -27,7 +40,7 @@ namespace DipSocket.NetCore.Extensions
                     var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
                     var clientId = context.Request.Query["clientId"];
-                    await webSocketServer.OnClientConnectAsync(webSocket, clientId);
+                    await dipSocketServer.OnClientConnectAsync(webSocket, clientId);
 
                     await Receive(webSocket);
                 }
@@ -55,13 +68,13 @@ namespace DipSocket.NetCore.Extensions
 
                 if (result.MessageType.Equals(WebSocketMessageType.Text))
                 {
-                    await webSocketServer.ReceiveAsync(webSocket, result, buffer);
+                    await dipSocketServer.ReceiveAsync(webSocket, result, buffer);
                     continue;
                 }
 
                 if(result.MessageType.Equals(WebSocketMessageType.Close))
                 {
-                    await webSocketServer.OnClientDisonnectAsync(webSocket);
+                    await dipSocketServer.OnClientDisonnectAsync(webSocket);
                     continue;
                 }
             }
