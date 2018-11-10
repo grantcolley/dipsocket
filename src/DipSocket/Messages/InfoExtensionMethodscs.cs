@@ -1,6 +1,7 @@
-﻿using System.Linq;
+﻿using DipSocket.Server;
+using System.Linq;
 
-namespace DipSocket.Server
+namespace DipSocket.Messages
 {
     public static class InfoExtensionMethodscs
     {

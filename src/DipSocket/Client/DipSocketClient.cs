@@ -6,16 +6,21 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DipSocket.Server;
 
 namespace DipSocket.Client
 {
+    /// <summary>
+    /// Send and receive <see cref="WebSocket"/> requests to a <see cref="DipSocketServer"/>
+    /// </summary>
     public class DipSocketClient
     {
         private ClientWebSocket clientWebSocket;
         private Dictionary<string, Action<ServerMessage>> registeredMethods;
         private bool disposed;
 
-        public event Func<Exception, Task> Closed;
+        public event EventHandler<Exception> Error;
+        public event EventHandler Closed;
 
         public string ConnectionId { get; private set; }
         public string Url { get; private set; }
@@ -89,15 +94,15 @@ namespace DipSocket.Client
 
         private void RunReceiving()
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 try
                 {
-                    Receiving();
+                    await Receiving();
                 }
                 catch(Exception ex)
                 {
-                    // todo better exception handling
+                    OnClose(ex);
                 }
             });
         }

@@ -124,7 +124,7 @@ namespace DipSocket.Server
 
             var webSockets = from connection in connections select SendMessageAsync(connection.WebSocket, json);
 
-            await Task.WhenAll(webSockets.ToArray()).ConfigureAwait(false); ;
+            await Task.WhenAll(webSockets.ToArray()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace DipSocket.Server
 
             var webSockets = from connection in channel.Connections.Values.ToArray() select SendMessageAsync(connection.WebSocket, json);
 
-            await Task.WhenAll(webSockets.ToArray()).ConfigureAwait(false); ;
+            await Task.WhenAll(webSockets.ToArray()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace DipSocket.Server
         {
             var json = JsonConvert.SerializeObject(message);
 
-            await SendMessageAsync(webSocket, json).ConfigureAwait(false); ; 
+            await SendMessageAsync(webSocket, json).ConfigureAwait(false);
         }
 
         /// <summary>

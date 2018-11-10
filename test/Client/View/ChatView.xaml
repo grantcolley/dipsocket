@@ -151,7 +151,7 @@
             </GroupBox>
             <GroupBox Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <ListView Background="Transparent" BorderBrush="Transparent"
-                          ItemsSource="{Binding Connections}"/>
+                          ItemsSource="{Binding ServerInfos}"/>
             </GroupBox>
         </DockPanel>
 

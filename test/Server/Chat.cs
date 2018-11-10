@@ -36,13 +36,13 @@ namespace Server
 
                 await SendMessageAsync(websocket, serverMessage).ConfigureAwait(false);
 
-                await ChannelUpdateAsync().ConfigureAwait(false); ;
+                await ChannelUpdateAsync().ConfigureAwait(false);
             }
             else
             {
                 var serverMessage = new ServerMessage { MethodName = "OnConnected", SentBy = "Chat", Data = $"{clientId} failed to connect." };
 
-                await SendMessageAsync(websocket, serverMessage).ConfigureAwait(false); ;
+                await SendMessageAsync(websocket, serverMessage).ConfigureAwait(false);
             }
         }
 
@@ -69,10 +69,6 @@ namespace Server
                     var channel = SubscribeToChannel(clientMessage.Data, webSocket);
                     if (channel != null)
                     {
-                        var channelInfo = channel.GetChannelInfo();
-                        var channelInfoJson = JsonConvert.SerializeObject(channelInfo);
-                        var subscribeMessage = new ServerMessage { MethodName = "OnMessageReceived", SentBy = channel.Name, Data = channelInfoJson };
-                        await SendMessageToChannelAsync(channel, subscribeMessage).ConfigureAwait(false);
                         await ChannelUpdateAsync().ConfigureAwait(false);
                     }
                     else
@@ -92,9 +88,6 @@ namespace Server
                     var unsubscribedChannel = UnsubscribeFromChannel(clientMessage.Data, webSocket);
                     await ChannelUpdateAsync().ConfigureAwait(false);
                     break;
-
-                default:
-                    throw new NotImplementedException($"{clientMessage.MessageType}");
             }
         }
 
@@ -104,7 +97,7 @@ namespace Server
 
             var json = JsonConvert.SerializeObject(serverInfo);
 
-            var messageUpdateAll = new ServerMessage { MethodName = "OnChannelUpdate", SentBy = "Chat", Data = json };
+            var messageUpdateAll = new ServerMessage { MethodName = "OnServerInfo", SentBy = "Chat", Data = json };
 
             await SendMessageToAllAsync(messageUpdateAll);
         }

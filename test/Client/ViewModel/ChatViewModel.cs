@@ -1,11 +1,9 @@
 ﻿using Client.Command;
 using Client.Model;
-using DipSocket;
 using DipSocket.Client;
 using DipSocket.Messages;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.WebSockets;
@@ -21,9 +19,9 @@ namespace Client.ViewModel
         private string connectionMessage;
         private bool isConnected;
         private object messagesLock;
-        private object connectionsLock;
-        private Connection connection;
-        private ClientWebSocketConnection clientWebSocketConnection;
+        private object serverInfosLock;
+        private ConnectionInfo connectionInfo;
+        private DipSocketClient dipSocketClient;
         
         public ChatViewModel()
         {
@@ -38,9 +36,9 @@ namespace Client.ViewModel
             Messages = new ObservableCollection<Message>();
             BindingOperations.EnableCollectionSynchronization(Messages, messagesLock);
 
-            connectionsLock = new object();
-            Connections = new ObservableCollection<Connection>();
-            BindingOperations.EnableCollectionSynchronization(Connections, connectionsLock);
+            serverInfosLock = new object();
+            ServerInfos = new ObservableCollection<IInfo>();
+            BindingOperations.EnableCollectionSynchronization(ServerInfos, serverInfosLock);
         }
 
         public ICommand ConnectCommand { get; set; }
@@ -48,7 +46,7 @@ namespace Client.ViewModel
         public ICommand ClearErrorsCommand { get; set; }
 
         public ObservableCollection<Message> Messages { get; }
-        public ObservableCollection<Connection> Connections { get; }
+        public ObservableCollection<IInfo> ServerInfos { get; }
         public ObservableCollection<Error> Errors { get; set; }
 
         public bool HasErrors
@@ -69,15 +67,15 @@ namespace Client.ViewModel
             }
         }
 
-        public Connection Connection
+        public ConnectionInfo ConnectionInfo
         {
-            get { return connection; }
+            get { return connectionInfo; }
             set
             {
-                if (connection != value)
+                if (connectionInfo != value)
                 {
-                    connection = value;
-                    OnPropertyChanged("Connection");
+                    connectionInfo = value;
+                    OnPropertyChanged("ConnectionInfo");
                 }
             }
         }
@@ -130,8 +128,8 @@ namespace Client.ViewModel
 
             try
             {
-                var clientMessage = new ClientMessage { SentBy = Connection.Name, Data = Message, MessageType = MessageType.SendToClient };
-                await clientWebSocketConnection.SendMessageAsync(clientMessage);
+                var clientMessage = new ClientMessage { SentBy = ConnectionInfo.Name, Data = Message, MessageType = MessageType.SendToClient };
+                await dipSocketClient.SendMessageAsync(clientMessage);
 
                 Message = string.Empty;
             }
@@ -143,8 +141,8 @@ namespace Client.ViewModel
 
         private bool CheckConnection()
         {
-            if (clientWebSocketConnection != null
-                && clientWebSocketConnection.State.Equals(WebSocketState.Open))
+            if (dipSocketClient != null
+                && dipSocketClient.State.Equals(WebSocketState.Open))
             {
                 return true;
             }
@@ -164,17 +162,19 @@ namespace Client.ViewModel
 
             try
             {
-                clientWebSocketConnection = new ClientWebSocketConnection(@"ws://localhost:6000/chat", arg.ToString());
+                dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", arg.ToString());
+                dipSocketClient.Closed += DipSocketClientClosed; ;
+                dipSocketClient.Error += DipSocketClientError;
 
-                clientWebSocketConnection.On("OnConnected", (result) =>
+                dipSocketClient.On("OnConnected", (result) =>
                 {
                     var message = (Message)result;
-                    Connection = JsonConvert.DeserializeObject<Connection>(message.Data);
-                    ConnectionMessage = $"{message.SentOn} {message.SentBy} {Connection.Name} connected. Connection Id : {Connection.ConnectionId}";
+                    ConnectionInfo = JsonConvert.DeserializeObject<ConnectionInfo>(message.Data);
+                    ConnectionMessage = $"{message.SentOn} {message.SentBy} {ConnectionInfo.Name} connected. Connection Id : {ConnectionInfo.ConnectionId}";
                     IsConnected = true;
                 });
 
-                clientWebSocketConnection.On("OnMessageReceived", (result) =>
+                dipSocketClient.On("OnMessageReceived", (result) =>
                 {
                     lock (messagesLock)
                     {
@@ -182,31 +182,31 @@ namespace Client.ViewModel
                     }
                 });
 
-                clientWebSocketConnection.On("OnChatUpdate", (result) =>
+                dipSocketClient.On("OnServerInfo", (result) =>
                 {
-                    lock (connectionsLock)
+                    lock (serverInfosLock)
                     {
-                        var serverConnections = JsonConvert.DeserializeObject<ServerConnections>(result.Data);
-                        var allConnections = serverConnections.Channels.Union(serverConnections.Connections).OrderBy(c => c.Name);
+                        var serverInfo = JsonConvert.DeserializeObject<ServerInfo>(result.Data);
+                        var allServerInfos = serverInfo.Channels.Cast<IInfo>().Union(serverInfo.Connections.Cast<IInfo>()).OrderBy(c => c.Name).ToList();
 
-                        var removals = Connections.Where(c => !allConnections.Any(nc => nc.Name.Equals(c)));
+                        var removals = ServerInfos.Where(c => !allServerInfos.Any(nc => nc.Name.Equals(c)));
                         foreach (var removal in removals)
                         {
-                            Connections.Remove(removal);
+                            ServerInfos.Remove(removal);
                         }
 
-                        var additions = allConnections.Where(a => !Connections.Any(c => c.Name.Equals(a.Name) && !a.Name.Equals(Connection.Name)));
+                        var additions = allServerInfos.Where(a => !ServerInfos.Any(c => c.Name.Equals(a.Name) && !a.Name.Equals(ConnectionInfo.Name)));
                         if(additions.Any())
                         {
                             foreach (var addition in additions)
                             {
-                                Connections.Add(addition);
+                                ServerInfos.Add(addition);
                             }
                         }
                     }
                 });
 
-                await clientWebSocketConnection.StartAsync();
+                await dipSocketClient.StartAsync();
 
                 IsConnected = true;
             }
@@ -215,6 +215,16 @@ namespace Client.ViewModel
                 IsConnected = false;
                 Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
             }
+        }
+
+        private void DipSocketClientError(object sender, Exception ex)
+        {
+            Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
+        }
+
+        private void DipSocketClientClosed(object sender, EventArgs e)
+        {
+            Errors.Add(new Error { Message = "Connection Closed" });
         }
 
         private async void OnNewChannel(object args)
@@ -233,9 +243,9 @@ namespace Client.ViewModel
 
             try
             {
-                var clientMessage = new ClientMessage { SentBy = Connection.Name, Data = NewChannel, MessageType = MessageType.CreateNewChannel };
+                var clientMessage = new ClientMessage { SentBy = ConnectionInfo.Name, Data = NewChannel, MessageType = MessageType.CreateNewChannel };
 
-                await clientWebSocketConnection.SendMessageAsync(clientMessage);
+                await dipSocketClient.SendMessageAsync(clientMessage);
 
                 NewChannel = string.Empty;
             }

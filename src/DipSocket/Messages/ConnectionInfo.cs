@@ -1,9 +1,9 @@
-﻿namespace DipSocket.Server
+﻿namespace DipSocket.Messages
 {
     /// <summary>
     /// Represents information about an active <see cref="Connection"/> <see cref="DipSocketServer"/>.
     /// </summary>
-    public class ConnectionInfo
+    public class ConnectionInfo : IInfo
     {
         /// <summary>
         /// Gets or sets the name of the connection.

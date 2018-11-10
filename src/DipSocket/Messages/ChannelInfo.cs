@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 
-namespace DipSocket.Server
+namespace DipSocket.Messages
 {
     /// <summary>
     /// Information about an active <see cref="Channel"/> managed by the <see cref="DipSocketServer"/>.
     /// </summary>
-    public class ChannelInfo
+    public class ChannelInfo : IInfo
     {
         /// <summary>
         /// Creates a new instance of the <see cref="ChannelInfo"/>.

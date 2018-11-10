@@ -49,9 +49,15 @@ namespace DipSocket.NetCore.Extensions
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 }
             }
+            catch (WebSocketException wsex) when (wsex.WebSocketErrorCode.Equals(WebSocketError.ConnectionClosedPrematurely))
+            {
+                // The remote party closed the WebSocket connection
+                // without completing the close handshake.
+            }
             catch (Exception ex)
             {
                 var response = context.Response;
+                response.Clear();
                 response.ContentType = "application/json";
                 response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 await response.WriteAsync(JsonConvert.SerializeObject(ex)).ConfigureAwait(false);
