@@ -88,6 +88,9 @@ namespace Server
                     var unsubscribedChannel = UnsubscribeFromChannel(clientMessage.Data, webSocket);
                     await ChannelUpdateAsync().ConfigureAwait(false);
                     break;
+                case MessageType.Disconnect:
+                    // TODO
+                    break;
             }
         }
 

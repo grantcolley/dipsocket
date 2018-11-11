@@ -86,10 +86,16 @@ namespace DipSocket.Client
             }
         }
 
-        private void OnClose(Exception exception)
+        private void OnError(Exception exception)
+        {
+            var error = Error;
+            error.Invoke(this, exception);
+        }
+
+        private void OnClose()
         {
             var closed = Closed;
-            closed.Invoke(exception);
+            closed.Invoke(this, EventArgs.Empty);
         }
 
         private void RunReceiving()
@@ -102,7 +108,7 @@ namespace DipSocket.Client
                 }
                 catch(Exception ex)
                 {
-                    OnClose(ex);
+                    OnError(ex);
                 }
             });
         }

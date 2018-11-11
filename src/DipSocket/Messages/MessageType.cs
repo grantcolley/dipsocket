@@ -6,6 +6,7 @@
     public enum MessageType
     {
         CreateNewChannel,
+        Disconnect,
         SendToAll,
         SendToChannel,
         SendToClient,

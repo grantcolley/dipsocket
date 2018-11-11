@@ -14,6 +14,22 @@ namespace Client.View
             InitializeComponent();
         }
 
+        private void ConnectUserKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key.Equals(Key.Enter))
+            {
+                ((ChatViewModel)DataContext).ConnectCommand.Execute(txtUser.Text);
+            }
+        }
+
+        private void NewChannelKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key.Equals(Key.Enter))
+            {
+                ((ChatViewModel)DataContext).NewChannelCommand.Execute(txtNewChannel.Text);
+            }
+        }
+
         private void MessageKeyDown(object sender, KeyEventArgs e)
         {
             if(e.Key.Equals(Key.Enter))

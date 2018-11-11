@@ -86,6 +86,17 @@
                 </DockPanel>
             </GroupBox>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type dip:ChannelInfo}">
+            <DockPanel LastChildFill="True">
+                <Button DockPanel.Dock="Right" Margin="5" Background="Transparent" BorderBrush="Transparent" 
+                        ToolTip="Clear errors"
+                        Command="{Binding ClearErrorsCommand}">
+                    <ContentControl Content="{StaticResource close}"/>
+                </Button>
+                <Label DockPanel.Dock="Left" Margin="0,5,5,5" Content="Errors" Foreground="#FFFFFF"/>
+            </DockPanel>
+        </DataTemplate>
         
     </Window.Resources>
     <Grid>
@@ -113,16 +124,17 @@
             <GroupBox DockPanel.Dock="Top" Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <StackPanel>
                     <DockPanel LastChildFill="True">
-                        <Label DockPanel.Dock="Left" Margin="5" Content="User :" Foreground="#FFFFFF" Width="80"/>
+                        <Label DockPanel.Dock="Left" Margin="5" Content="Connect User" Foreground="#FFFFFF" Width="80"/>
                         <Button DockPanel.Dock="Right" Margin="5" Background="Transparent" BorderBrush="Transparent"
                                 ToolTip="{Binding IsConnected, Converter={StaticResource isConnectedToStringConverter}}"
                                 Command="{Binding ConnectCommand}" 
                                 CommandParameter="{Binding ElementName=txtUser, Path=Text}">
                             <ContentControl Content="{Binding IsConnected, Converter={StaticResource boolToConnectConverter}}"/>
                         </Button>
-                        <TextBox x:Name="txtUser" Margin="5" Foreground="#FFFFFF" Background="#141414"
+                        <TextBox x:Name="txtUser" Margin="5" Foreground="#FFFFFF" Background="#141414" VerticalContentAlignment="Center"
                                  Text="{Binding User, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 IsReadOnly="{Binding IsConnected}">
+                                 IsReadOnly="{Binding IsConnected}"
+                                 KeyDown="ConnectUserKeyDown">
                             <TextBox.Style>
                                 <Style TargetType="TextBox">
                                     <Style.Triggers>
@@ -143,15 +155,21 @@
                                 CommandParameter="{Binding ElementName=txtNewChannel, Path=Text}">
                             <ContentControl Content="{StaticResource add}"/>
                         </Button>
-                        <TextBox x:Name="txtNewChannel" Margin="5" Foreground="#FFFFFF" Background="#141414"
-                                 Text="{Binding NewChannel, Mode=twoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox x:Name="txtNewChannel" Margin="5" Foreground="#FFFFFF" Background="#141414" VerticalContentAlignment="Center"
+                                 Text="{Binding NewChannel, Mode=twoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 KeyDown="NewChannelKeyDown"/>
                     </DockPanel>
-
                 </StackPanel>
             </GroupBox>
             <GroupBox Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
-                <ListView Background="Transparent" BorderBrush="Transparent"
-                          ItemsSource="{Binding ServerInfos}"/>
+                <ListBox Background="Transparent" BorderBrush="Transparent"
+                          ItemsSource="{Binding ServerInfos}">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
             </GroupBox>
         </DockPanel>
 

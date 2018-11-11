@@ -139,7 +139,7 @@ namespace Client.ViewModel
             }
         }
 
-        private bool CheckConnection()
+        private bool CheckConnection(bool showMessage = true)
         {
             if (dipSocketClient != null
                 && dipSocketClient.State.Equals(WebSocketState.Open))
@@ -147,7 +147,11 @@ namespace Client.ViewModel
                 return true;
             }
 
-            Errors.Add(new Error { Message = "Connection isn't open.", Verbose = "Connection isn't open." });
+            if (showMessage)
+            {
+                Errors.Add(new Error { Message = "Connection isn't open.", Verbose = "Connection isn't open." });
+            }
+
             return false;
         }
 
@@ -157,6 +161,12 @@ namespace Client.ViewModel
                 || string.IsNullOrWhiteSpace(arg.ToString()))
             {
                 Errors.Add(new Error { Message = "A user name is required to connect to Chat", Verbose = "A user name is required to connect to Chat" });
+                return;
+            }
+
+            if (CheckConnection(false))
+            {
+                Errors.Add(new Error { Message = $"{ConnectionInfo.Name} is already connected.", Verbose = $"{ConnectionInfo.Name} is already connected." });
                 return;
             }
 
@@ -170,7 +180,7 @@ namespace Client.ViewModel
                 {
                     var message = (Message)result;
                     ConnectionInfo = JsonConvert.DeserializeObject<ConnectionInfo>(message.Data);
-                    ConnectionMessage = $"{message.SentOn} {message.SentBy} {ConnectionInfo.Name} connected. Connection Id : {ConnectionInfo.ConnectionId}";
+                    ConnectionMessage = $"{ConnectionInfo.Name} is connected.";
                     IsConnected = true;
                 });
 
@@ -187,15 +197,18 @@ namespace Client.ViewModel
                     lock (serverInfosLock)
                     {
                         var serverInfo = JsonConvert.DeserializeObject<ServerInfo>(result.Data);
-                        var allServerInfos = serverInfo.Channels.Cast<IInfo>().Union(serverInfo.Connections.Cast<IInfo>()).OrderBy(c => c.Name).ToList();
+                        var allServerInfos = serverInfo.Channels.Cast<IInfo>()
+                                                                .Union(serverInfo.Connections.Where(c => !c.Name.Equals(ConnectionInfo.Name)).Cast<IInfo>())
+                                                                .OrderBy(c => c.Name).ToList();
 
-                        var removals = ServerInfos.Where(c => !allServerInfos.Any(nc => nc.Name.Equals(c)));
+                        var removals = ServerInfos.Where(c => !allServerInfos.Any(nc => nc.Name.Equals(c.Name))).ToList();
+
                         foreach (var removal in removals)
                         {
                             ServerInfos.Remove(removal);
                         }
 
-                        var additions = allServerInfos.Where(a => !ServerInfos.Any(c => c.Name.Equals(a.Name) && !a.Name.Equals(ConnectionInfo.Name)));
+                        var additions = allServerInfos.Where(a => !ServerInfos.Any(c => c.Name.Equals(a.Name))).ToList();
                         if(additions.Any())
                         {
                             foreach (var addition in additions)
