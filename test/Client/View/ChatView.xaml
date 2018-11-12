@@ -87,14 +87,25 @@
             </GroupBox>
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type dip:ChannelInfo}">
+        <DataTemplate DataType="{x:Type model:Channel}">
             <DockPanel LastChildFill="True">
                 <Button DockPanel.Dock="Right" Margin="5" Background="Transparent" BorderBrush="Transparent" 
                         ToolTip="Clear errors"
                         Command="{Binding ClearErrorsCommand}">
                     <ContentControl Content="{StaticResource close}"/>
                 </Button>
-                <Label DockPanel.Dock="Left" Margin="0,5,5,5" Content="Errors" Foreground="#FFFFFF"/>
+                <Label DockPanel.Dock="Left" Margin="0,5,5,5" Content="{Binding Name}" Foreground="#ededed"/>
+            </DockPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type model:Connection}">
+            <DockPanel LastChildFill="True">
+                <Button DockPanel.Dock="Right" Margin="5" Background="Transparent" BorderBrush="Transparent" 
+                        ToolTip="Clear errors"
+                        Command="{Binding ClearErrorsCommand}">
+                    <ContentControl Content="{StaticResource close}"/>
+                </Button>
+                <Label DockPanel.Dock="Left" Margin="0,5,5,5" Content="{Binding Name}" Foreground="#FFFFFF"/>
             </DockPanel>
         </DataTemplate>
         

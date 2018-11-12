@@ -202,18 +202,22 @@ namespace Client.ViewModel
                                                                 .OrderBy(c => c.Name).ToList();
 
                         var removals = ServerInfos.Where(c => !allServerInfos.Any(nc => nc.Name.Equals(c.Name))).ToList();
-
                         foreach (var removal in removals)
                         {
                             ServerInfos.Remove(removal);
                         }
+
+                        var updates = (from c in ServerInfos.OfType<Channel>()
+                                      join ci in allServerInfos.OfType<ChannelInfo>()
+                                      on c.Name equals ci.Name
+                                      select c.UpdateConnections(ci)).ToList();
 
                         var additions = allServerInfos.Where(a => !ServerInfos.Any(c => c.Name.Equals(a.Name))).ToList();
                         if(additions.Any())
                         {
                             foreach (var addition in additions)
                             {
-                                ServerInfos.Add(addition);
+                                ServerInfos.Add(InfoFactory.GetInfo(addition));
                             }
                         }
                     }

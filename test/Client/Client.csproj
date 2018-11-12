@@ -70,7 +70,12 @@
     <Compile Include="Converter\BoolToVisibilityConverter.cs" />
     <Compile Include="Converter\IsConnectedToStringConverter.cs" />
     <Compile Include="Converter\BoolToConnectConverter.cs" />
+    <Compile Include="Model\Channel.cs" />
+    <Compile Include="Model\ChannelExtensions.cs" />
+    <Compile Include="Model\Connection.cs" />
+    <Compile Include="Model\InfoDecorator.cs" />
     <Compile Include="Model\Error.cs" />
+    <Compile Include="Model\InfoFactory.cs" />
     <Compile Include="ViewModel\ChatViewModel.cs" />
     <Compile Include="View\ChatView.xaml.cs">
       <DependentUpon>ChatView.xaml</DependentUpon>
