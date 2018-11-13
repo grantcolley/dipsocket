@@ -7,6 +7,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -20,13 +21,15 @@ namespace Client.ViewModel
         private bool isConnected;
         private object messagesLock;
         private object serverInfosLock;
-        private ConnectionInfo connectionInfo;
+        private ConnectionInfo user;
         private DipSocketClient dipSocketClient;
         
         public ChatViewModel()
         {
             ConnectCommand = new ViewModelCommand(OnConnect);
             NewChannelCommand = new ViewModelCommand(OnNewChannel);
+            SendMessageCommand = new ViewModelCommand(OnSendMessage);
+            RemoveCommand = new ViewModelCommand(OnRemoveItem);
             ClearErrorsCommand = new ViewModelCommand(OnClearErrors);
 
             Errors = new ObservableCollection<Error>();
@@ -43,6 +46,8 @@ namespace Client.ViewModel
 
         public ICommand ConnectCommand { get; set; }
         public ICommand NewChannelCommand { get; set; }
+        public ICommand SendMessageCommand { get; set; }
+        public ICommand RemoveCommand { get; set; }
         public ICommand ClearErrorsCommand { get; set; }
 
         public ObservableCollection<Message> Messages { get; }
@@ -67,14 +72,14 @@ namespace Client.ViewModel
             }
         }
 
-        public ConnectionInfo ConnectionInfo
+        public ConnectionInfo User
         {
-            get { return connectionInfo; }
+            get { return user; }
             set
             {
-                if (connectionInfo != value)
+                if (user != value)
                 {
-                    connectionInfo = value;
+                    user = value;
                     OnPropertyChanged("ConnectionInfo");
                 }
             }
@@ -119,16 +124,56 @@ namespace Client.ViewModel
             }
         }
 
-        public async void SendMessage()
+        private async void OnConnect(object arg)
         {
-            if(!CheckConnection())
+            if (CheckConnection(false))
+            {
+                await ConnectAsync(arg);
+            }
+            else
+            {
+                await DisconnectAsync(arg);
+            }
+        }
+        
+        private async void OnNewChannel(object args)
+        {
+            if(NewChannel == null
+                || string.IsNullOrWhiteSpace(NewChannel))
+            {
+                Errors.Add(new Error { Message = "Specify the name of the channel you want to create.", Verbose = "Specify the name of the channel you want to create." });
+                return;
+            }
+
+            if (!CheckConnection())
             {
                 return;
             }
 
             try
             {
-                var clientMessage = new ClientMessage { SentBy = ConnectionInfo.Name, Data = Message, MessageType = MessageType.SendToClient };
+                var clientMessage = new ClientMessage { SentBy = User.Name, Data = NewChannel, MessageType = MessageType.CreateNewChannel };
+
+                await dipSocketClient.SendMessageAsync(clientMessage);
+
+                NewChannel = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
+            }
+        }
+
+        public async void OnSendMessage(object arg)
+        {
+            try
+            {
+                if (!CheckConnection())
+                {
+                    return;
+                }
+
+                var clientMessage = new ClientMessage { SentBy = User.Name, Data = Message, MessageType = MessageType.SendToClient };
                 await dipSocketClient.SendMessageAsync(clientMessage);
 
                 Message = string.Empty;
@@ -139,6 +184,16 @@ namespace Client.ViewModel
             }
         }
 
+        private void OnRemoveItem(object item)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void OnClearErrors(object args)
+        {
+            Errors.Clear();
+        }
+        
         private bool CheckConnection(bool showMessage = true)
         {
             if (dipSocketClient != null
@@ -155,23 +210,17 @@ namespace Client.ViewModel
             return false;
         }
 
-        private async void OnConnect(object arg)
+        private async Task ConnectAsync(object arg)
         {
-            if (arg == null
-                || string.IsNullOrWhiteSpace(arg.ToString()))
-            {
-                Errors.Add(new Error { Message = "A user name is required to connect to Chat", Verbose = "A user name is required to connect to Chat" });
-                return;
-            }
-
-            if (CheckConnection(false))
-            {
-                Errors.Add(new Error { Message = $"{ConnectionInfo.Name} is already connected.", Verbose = $"{ConnectionInfo.Name} is already connected." });
-                return;
-            }
-
             try
             {
+                if (arg == null
+                    || string.IsNullOrWhiteSpace(arg.ToString()))
+                {
+                    Errors.Add(new Error { Message = "A user name is required to connect to Chat", Verbose = "A user name is required to connect to Chat" });
+                    return;
+                }
+
                 dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", arg.ToString());
                 dipSocketClient.Closed += DipSocketClientClosed; ;
                 dipSocketClient.Error += DipSocketClientError;
@@ -179,8 +228,8 @@ namespace Client.ViewModel
                 dipSocketClient.On("OnConnected", (result) =>
                 {
                     var message = (Message)result;
-                    ConnectionInfo = JsonConvert.DeserializeObject<ConnectionInfo>(message.Data);
-                    ConnectionMessage = $"{ConnectionInfo.Name} is connected.";
+                    User = JsonConvert.DeserializeObject<ConnectionInfo>(message.Data);
+                    ConnectionMessage = $"{User.Name} is connected.";
                     IsConnected = true;
                 });
 
@@ -198,7 +247,7 @@ namespace Client.ViewModel
                     {
                         var serverInfo = JsonConvert.DeserializeObject<ServerInfo>(result.Data);
                         var allServerInfos = serverInfo.Channels.Cast<IInfo>()
-                                                                .Union(serverInfo.Connections.Where(c => !c.Name.Equals(ConnectionInfo.Name)).Cast<IInfo>())
+                                                                .Union(serverInfo.Connections.Where(c => !c.Name.Equals(User.Name)).Cast<IInfo>())
                                                                 .OrderBy(c => c.Name).ToList();
 
                         var removals = ServerInfos.Where(c => !allServerInfos.Any(nc => nc.Name.Equals(c.Name))).ToList();
@@ -208,12 +257,12 @@ namespace Client.ViewModel
                         }
 
                         var updates = (from c in ServerInfos.OfType<Channel>()
-                                      join ci in allServerInfos.OfType<ChannelInfo>()
-                                      on c.Name equals ci.Name
-                                      select c.UpdateConnections(ci)).ToList();
+                                       join ci in allServerInfos.OfType<ChannelInfo>()
+                                       on c.Name equals ci.Name
+                                       select c.UpdateConnections(ci)).ToList();
 
                         var additions = allServerInfos.Where(a => !ServerInfos.Any(c => c.Name.Equals(a.Name))).ToList();
-                        if(additions.Any())
+                        if (additions.Any())
                         {
                             foreach (var addition in additions)
                             {
@@ -234,6 +283,11 @@ namespace Client.ViewModel
             }
         }
 
+        private async Task DisconnectAsync(object arg)
+        {
+            throw new NotImplementedException();
+        }
+
         private void DipSocketClientError(object sender, Exception ex)
         {
             Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
@@ -242,39 +296,6 @@ namespace Client.ViewModel
         private void DipSocketClientClosed(object sender, EventArgs e)
         {
             Errors.Add(new Error { Message = "Connection Closed" });
-        }
-
-        private async void OnNewChannel(object args)
-        {
-            if(NewChannel == null
-                || string.IsNullOrWhiteSpace(NewChannel))
-            {
-                Errors.Add(new Error { Message = "Specify the name of the channel you want to create.", Verbose = "Specify the name of the channel you want to create." });
-                return;
-            }
-
-            if (!CheckConnection())
-            {
-                return;
-            }
-
-            try
-            {
-                var clientMessage = new ClientMessage { SentBy = ConnectionInfo.Name, Data = NewChannel, MessageType = MessageType.CreateNewChannel };
-
-                await dipSocketClient.SendMessageAsync(clientMessage);
-
-                NewChannel = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
-            }
-        }
-        
-        private void OnClearErrors(object args)
-        {
-            Errors.Clear();
         }
 
         private void ErrorsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

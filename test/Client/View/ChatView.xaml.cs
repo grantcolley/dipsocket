@@ -34,7 +34,7 @@ namespace Client.View
         {
             if(e.Key.Equals(Key.Enter))
             {
-                ((ChatViewModel)DataContext).SendMessage();
+                ((ChatViewModel)DataContext).SendMessageCommand.Execute(txtMsg.Text);
             }
         }
     }
