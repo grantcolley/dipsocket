@@ -24,6 +24,7 @@
 
         <converters:IsConnectedToStringConverter x:Key="isConnectedToStringConverter"/>
         <converters:BoolToVisibilityConverter x:Key="boolToVisibilityConverter"/>
+        <converters:SelectedInfoToVisibilityConverter x:Key="selectedInfoToVisibilityConverter"/>
         
         <converters:BoolToConnectConverter x:Key="boolToConnectConverter" >
             <converters:BoolToConnectConverter.ResourceDictionary>
@@ -152,7 +153,8 @@
             </GroupBox>
             <GroupBox Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <ListBox Background="Transparent" BorderBrush="Transparent"
-                          ItemsSource="{Binding ServerInfos}">
+                         ItemsSource="{Binding ServerInfos}"
+                         SelectedItem="{Binding SelectedInfo, Mode=TwoWay}">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type model:InfoDecorator}">
                             <DockPanel LastChildFill="True">
@@ -176,7 +178,24 @@
         </DockPanel>
 
         <GroupBox Grid.Row="1" Grid.Column="2" Background="#030303" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
-            <ItemsControl Margin="5" Background="#030303" BorderBrush="Transparent" ItemsSource="{Binding Messages, Mode=OneWay}"/>
+            <DockPanel LastChildFill="True">
+                <ItemsControl DockPanel.Dock="Right" Margin="5" Background="#141414" BorderBrush="#FFFFFF" Width="200" 
+                              ItemsSource="{Binding SelectedInfo.Connections, Mode=OneWay}"
+                              Visibility="{Binding SelectedInfo, Converter={StaticResource selectedInfoToVisibilityConverter}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type dip:ConnectionInfo}">
+                            <Label Margin="5" Foreground="#FFFFFF" Content="{Binding Name}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <ItemsControl Margin="5" Background="#030303" BorderBrush="Transparent" ItemsSource="{Binding SelectedInfo.Messages, Mode=OneWay}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type dip:Message}">
+                            <Label Content="{Binding Name}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
         </GroupBox>
 
         <DockPanel Grid.Row="3" Grid.Column="2" LastChildFill="True" Background="#141414">

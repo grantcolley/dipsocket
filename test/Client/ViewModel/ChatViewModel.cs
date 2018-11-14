@@ -23,7 +23,8 @@ namespace Client.ViewModel
         private object serverInfosLock;
         private ConnectionInfo user;
         private DipSocketClient dipSocketClient;
-        
+        private InfoDecorator selectedInfo;
+
         public ChatViewModel()
         {
             ConnectCommand = new ViewModelCommand(OnConnect);
@@ -34,10 +35,6 @@ namespace Client.ViewModel
 
             Errors = new ObservableCollection<Error>();
             Errors.CollectionChanged += ErrorsCollectionChanged;
-
-            messagesLock = new object();
-            Messages = new ObservableCollection<Message>();
-            BindingOperations.EnableCollectionSynchronization(Messages, messagesLock);
 
             serverInfosLock = new object();
             ServerInfos = new ObservableCollection<IInfo>();
@@ -50,7 +47,6 @@ namespace Client.ViewModel
         public ICommand RemoveCommand { get; set; }
         public ICommand ClearErrorsCommand { get; set; }
 
-        public ObservableCollection<Message> Messages { get; }
         public ObservableCollection<IInfo> ServerInfos { get; }
         public ObservableCollection<Error> Errors { get; set; }
 
@@ -81,6 +77,19 @@ namespace Client.ViewModel
                 {
                     user = value;
                     OnPropertyChanged("ConnectionInfo");
+                }
+            }
+        }
+
+        public InfoDecorator SelectedInfo
+        {
+            get { return selectedInfo; }
+            set
+            {
+                if(selectedInfo != value)
+                {
+                    selectedInfo = value;
+                    OnPropertyChanged("SelectedInfo");
                 }
             }
         }
@@ -126,7 +135,7 @@ namespace Client.ViewModel
 
         private async void OnConnect(object arg)
         {
-            if (CheckConnection(false))
+            if (!CheckConnection(false))
             {
                 await ConnectAsync(arg);
             }
@@ -173,7 +182,18 @@ namespace Client.ViewModel
                     return;
                 }
 
-                var clientMessage = new ClientMessage { SentBy = User.Name, Data = Message, MessageType = MessageType.SendToClient };
+                if(SelectedInfo == null)
+                {
+                    return;
+                }
+
+                var clientMessage = new ClientMessage { SentBy = User.Name, SendTo = SelectedInfo.Name, Data = Message, MessageType = MessageType.SendToClient };
+
+                if (SelectedInfo is Channel)
+                {
+                    clientMessage.MessageType = MessageType.SendToChannel;
+                }
+
                 await dipSocketClient.SendMessageAsync(clientMessage);
 
                 Message = string.Empty;
@@ -235,10 +255,7 @@ namespace Client.ViewModel
 
                 dipSocketClient.On("OnMessageReceived", (result) =>
                 {
-                    lock (messagesLock)
-                    {
-                        Messages.Add(result);
-                    }
+
                 });
 
                 dipSocketClient.On("OnServerInfo", (result) =>

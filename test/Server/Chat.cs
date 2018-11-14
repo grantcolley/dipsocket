@@ -48,49 +48,56 @@ namespace Server
 
         public async override Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer)
         {
-            var json = Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count);
-
-            var clientMessage = JsonConvert.DeserializeObject<ClientMessage>(json);
-
-            switch (clientMessage.MessageType)
+            try
             {
-                case MessageType.SendToAll:
-                    var messageAll = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
-                    await SendMessageToAllAsync(messageAll).ConfigureAwait(false);
-                    break;
+                var json = Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count);
 
-                case MessageType.SendToClient:
-                    var messageClient = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
-                    await SendMessageAsync(clientMessage.SendTo, messageClient).ConfigureAwait(false);
-                    break;
+                var clientMessage = JsonConvert.DeserializeObject<ClientMessage>(json);
 
-                case MessageType.SubscribeToChannel:
-                case MessageType.CreateNewChannel:
-                    var channel = SubscribeToChannel(clientMessage.Data, webSocket);
-                    if (channel != null)
-                    {
+                switch (clientMessage.MessageType)
+                {
+                    case MessageType.SendToAll:
+                        var messageAll = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
+                        await SendMessageToAllAsync(messageAll).ConfigureAwait(false);
+                        break;
+
+                    case MessageType.SendToClient:
+                        var messageClient = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
+                        await SendMessageAsync(clientMessage.SendTo, messageClient).ConfigureAwait(false);
+                        break;
+
+                    case MessageType.SubscribeToChannel:
+                    case MessageType.CreateNewChannel:
+                        var channel = SubscribeToChannel(clientMessage.Data, webSocket);
+                        if (channel != null)
+                        {
+                            await ChannelUpdateAsync().ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            var subscribeMessage = new ServerMessage { MethodName = "OnMessageReceived", SentBy = "Chat", Data = $"Failed to subscribe to channel {clientMessage.Data}." };
+                            await SendMessageAsync(webSocket, subscribeMessage).ConfigureAwait(false);
+                        }
+
+                        break;
+
+                    case MessageType.SendToChannel:
+                        var channelMessage = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
+                        await SendMessageToChannelAsync(clientMessage.SendTo, channelMessage).ConfigureAwait(false);
+                        break;
+
+                    case MessageType.UnsubscribeFromChannel:
+                        var unsubscribedChannel = UnsubscribeFromChannel(clientMessage.Data, webSocket);
                         await ChannelUpdateAsync().ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        var subscribeMessage = new ServerMessage { MethodName = "OnMessageReceived", SentBy = "Chat", Data = $"Failed to subscribe to channel {clientMessage.Data}." };
-                        await SendMessageAsync(webSocket, subscribeMessage).ConfigureAwait(false);
-                    }
-
-                    break;
-
-                case MessageType.SendToChannel:
-                    var channelMessage = new ServerMessage { MethodName = "OnMessageReceived", SentBy = clientMessage.SentBy, Data = clientMessage.Data };
-                    await SendMessageToChannelAsync(clientMessage.SendTo, channelMessage).ConfigureAwait(false);
-                    break;
-
-                case MessageType.UnsubscribeFromChannel:
-                    var unsubscribedChannel = UnsubscribeFromChannel(clientMessage.Data, webSocket);
-                    await ChannelUpdateAsync().ConfigureAwait(false);
-                    break;
-                case MessageType.Disconnect:
-                    // TODO
-                    break;
+                        break;
+                    case MessageType.Disconnect:
+                        // TODO
+                        break;
+                }
+            }
+            catch(Exception ex)
+            {
+                // TODO: send error back
             }
         }
 
