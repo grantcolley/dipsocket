@@ -21,7 +21,7 @@ namespace DipSocket.Server
         /// Gets or sets the channel name.
         /// </summary>
         public string Name { get; set; }
-
+        
         /// <summary>
         /// Gets or sets a dictionary of <see cref="Connection"/>'s.
         /// </summary>

@@ -13,7 +13,7 @@ namespace DipSocket.Messages
         public static ChannelInfo GetChannelInfo(this Channel channel)
         {
             var connectionInfos = (from connection in channel.Connections select connection.Value.GetConnectionInfo()).ToList();
-            var channelInfo = new ChannelInfo { Name = channel.Name };
+            var channelInfo = new ChannelInfo { Name = channel.Name, ConnectionId = channel.Name };
             channelInfo.Connections.AddRange(connectionInfos);
             return channelInfo;
         }

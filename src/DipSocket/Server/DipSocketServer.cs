@@ -102,7 +102,7 @@ namespace DipSocket.Server
         /// <param name="connectionId">The connection Id of the <see cref="WebSocket"/> client.</param>
         /// <param name="message">The message to send.</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        public async Task SendMessageAsync(string connectionId, ServerMessage message)
+        public async Task SendMessageAsync(string connectionId, Message message)
         {
             var connection = connectionManager.GetConnection(connectionId);
             if (connection != null)
@@ -116,7 +116,7 @@ namespace DipSocket.Server
         /// </summary>
         /// <param name="message">The message to send.</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        public async Task SendMessageToAllAsync(ServerMessage message)
+        public async Task SendMessageToAllAsync(Message message)
         {
             var json = JsonConvert.SerializeObject(message);
 
@@ -133,7 +133,7 @@ namespace DipSocket.Server
         /// <param name="channelName">The channel name.</param>
         /// <param name="message">The message to send.</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        public async Task SendMessageToChannelAsync(string channelName, ServerMessage message)
+        public async Task SendMessageToChannelAsync(string channelName, Message message)
         {
             var channel = channelManager.GetChannel(channelName);
 
@@ -151,7 +151,7 @@ namespace DipSocket.Server
         /// <param name="channelName">The channel name.</param>
         /// <param name="message">The message to send.</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        public async Task SendMessageToChannelAsync(Channel channel, ServerMessage message)
+        public async Task SendMessageToChannelAsync(Channel channel, Message message)
         {
             if (channel == null)
             {
@@ -171,7 +171,7 @@ namespace DipSocket.Server
         /// <param name="webSocket">The <see cref="WebSocket"/> to send the message to.</param>
         /// <param name="message">The message to send.</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        public async Task SendMessageAsync(WebSocket webSocket, ServerMessage message)
+        public async Task SendMessageAsync(WebSocket webSocket, Message message)
         {
             var json = JsonConvert.SerializeObject(message);
 

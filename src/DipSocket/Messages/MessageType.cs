@@ -1,11 +1,10 @@
 ﻿namespace DipSocket.Messages
 {
     /// <summary>
-    /// Indicates the type of message being sent from a <see cref="DipSocketClient"/> to the <see cref="DipSocketServer"/>.
+    /// Indicates the type of message being sent.
     /// </summary>
     public enum MessageType
     {
-        CreateNewChannel,
         Disconnect,
         SendToAll,
         SendToChannel,

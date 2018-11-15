@@ -21,6 +21,11 @@ namespace DipSocket.Messages
         public string Name { get; set; }
 
         /// <summary>
+        /// Gets or sets the connection id;
+        /// </summary>
+        public string ConnectionId { get; set; }
+
+        /// <summary>
         /// Gets or sets a list containing information about the  
         /// connection's that have subscribed to the channel.
         /// </summary>

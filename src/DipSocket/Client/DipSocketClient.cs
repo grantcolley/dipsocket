@@ -16,7 +16,7 @@ namespace DipSocket.Client
     public class DipSocketClient
     {
         private ClientWebSocket clientWebSocket;
-        private Dictionary<string, Action<ServerMessage>> registeredMethods;
+        private Dictionary<string, Action<Message>> registeredMethods;
         private bool disposed;
 
         public event EventHandler<Exception> Error;
@@ -34,7 +34,7 @@ namespace DipSocket.Client
             ClientId = clientId;
 
             clientWebSocket = new ClientWebSocket();
-            registeredMethods = new Dictionary<string, Action<ServerMessage>>();
+            registeredMethods = new Dictionary<string, Action<Message>>();
         }
 
         public async Task DisposeAsync()
@@ -54,7 +54,7 @@ namespace DipSocket.Client
             disposed = true;
         }
 
-        public void On(string methodName, Action<ServerMessage> handler)
+        public void On(string methodName, Action<Message> handler)
         {
             registeredMethods.Add(methodName, handler);
         }
@@ -66,7 +66,7 @@ namespace DipSocket.Client
             RunReceiving();
         }
 
-        public async Task SendMessageAsync(ClientMessage message)
+        public async Task SendMessageAsync(Message message)
         {
             if (clientWebSocket.State.Equals(WebSocketState.Open))
             {
@@ -125,9 +125,9 @@ namespace DipSocket.Client
                 {
                     var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
-                    var message = JsonConvert.DeserializeObject<ServerMessage>(json);
+                    var message = JsonConvert.DeserializeObject<Message>(json);
 
-                    if (registeredMethods.TryGetValue(message.MethodName, out Action<ServerMessage> method))
+                    if (registeredMethods.TryGetValue(message.MethodName, out Action<Message> method))
                     {
                         method.Invoke(message);
                     }

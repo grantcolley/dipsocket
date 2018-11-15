@@ -1,16 +1,18 @@
 ﻿using System;
+using DipSocket.Client;
+using DipSocket.Server;
 
 namespace DipSocket.Messages
 {
     /// <summary>
-    /// Base message class.
+    /// The message class.
     /// </summary>
-    public abstract class Message
+    public class Message
     {
         /// <summary>
         /// Creates an instance of the base message.
         /// </summary>
-        protected Message()
+        public Message()
         {
             SentOn = DateTime.Now;
         }
@@ -21,13 +23,28 @@ namespace DipSocket.Messages
         public DateTime SentOn { get; set; }
 
         /// <summary>
-        /// Gets or sets the senders name.
+        /// Gets or sets the senders connection id.
         /// </summary>
-        public string SentBy { get; set; }
+        public string SenderConnectionId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the recipients connection id of the message which is either another <see cref="Connection"/> or a <see cref="Channel"/>.
+        /// </summary>
+        public string RecipientConnectionId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the type of message sent from the <see cref="DipSocketClient"/> to the <see cref="DipSocketServer"/>.
+        /// </summary>
+        public MessageType MessageType { get; set; }
 
         /// <summary>
         /// Gets or sets the serialised message data.
         /// </summary>
         public string Data { get; set; }
+
+        /// <summary>
+        /// The name of the method to invoke on the client.
+        /// </summary>
+        public string MethodName { get; set; }
     }
 }

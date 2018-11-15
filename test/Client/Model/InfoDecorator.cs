@@ -29,5 +29,20 @@ namespace Client.Model
                 }
             }
         }
+
+        public string ConnectionId
+        {
+            get { return info.ConnectionId; }
+            set
+            {
+                if (info != null
+                    && info.ConnectionId != value)
+                {
+                    info.ConnectionId = value;
+                    OnPropertyChanged("ConnectionId");
+                }
+            }
+        }
+
     }
 }
