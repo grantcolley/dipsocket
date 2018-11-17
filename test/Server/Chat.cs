@@ -34,7 +34,7 @@ namespace Server
 
                 Console.WriteLine(json);
 
-                var message = new Message { MethodName = "OnConnected", Sender = "Chat", Data = json };
+                var message = new Message { MethodName = "OnConnected", SenderConnectionId = "Chat", Data = json };
 
                 await SendMessageAsync(websocket, message).ConfigureAwait(false);
 
@@ -42,7 +42,7 @@ namespace Server
             }
             else
             {
-                var message = new Message { MethodName = "OnConnected", Sender = "Chat", Data = $"{clientId} failed to connect." };
+                var message = new Message { MethodName = "OnConnected", SenderConnectionId = "Chat", Data = $"{clientId} failed to connect." };
 
                 await SendMessageAsync(websocket, message).ConfigureAwait(false);
             }
@@ -67,7 +67,7 @@ namespace Server
 
                     case MessageType.SendToClient:
                         message.MethodName = "OnMessageReceived";                        
-                        await SendMessageAsync(message.RecipientConnectionId, message).ConfigureAwait(false);
+                        await SendMessageAsync(message).ConfigureAwait(false);
                         break;
 
                     case MessageType.SubscribeToChannel:

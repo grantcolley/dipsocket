@@ -112,6 +112,52 @@ namespace DipSocket.Server
         }
 
         /// <summary>
+        /// Send a message to both sender and recipient <see cref="WebSocket"/> client.
+        /// </summary>
+        /// <param name="message">The message to send.</param>
+        /// <returns>A <see cref="Task"/>.</returns>
+        public async Task SendMessageAsync(Message message)
+        { 
+            var sender = connectionManager.GetConnection(message.SenderConnectionId);
+            var recipient = connectionManager.GetConnection(message.RecipientConnectionId);
+
+            if (sender != null
+                && recipient != null)
+            {
+                var connections = new List<Connection> { sender, recipient };
+
+                Func<Connection, Message, Message> getMessage = (conn, msg) => 
+                {
+                    if(conn.ConnectionId.Equals(msg.SenderConnectionId))
+                    {
+
+                        return new Message
+                        {
+                            SenderConnectionId = msg.SenderConnectionId,
+                            RecipientConnectionId = msg.RecipientConnectionId,
+                            MessageType = msg.MessageType,
+                            MethodName = msg.MethodName,
+                            Data = msg.Data
+                        };
+                    }
+
+                    return new Message
+                    {
+                        SenderConnectionId = msg.SenderConnectionId,
+                        RecipientConnectionId = msg.SenderConnectionId,
+                        MessageType = msg.MessageType,
+                        MethodName = msg.MethodName,
+                        Data = msg.Data
+                    };
+                };
+
+                var webSockets = (from connection in connections select SendMessageAsync(connection.WebSocket, getMessage(connection, message))).ToList();
+
+                await Task.WhenAll(webSockets.ToArray()).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Send a message to all <see cref="WebSocket"/> clients.
         /// </summary>
         /// <param name="message">The message to send.</param>
