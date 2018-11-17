@@ -19,8 +19,6 @@ namespace Client.ViewModel
     {
         private string message;
         private string newChannel;
-        private string connectionMessage;
-        private bool isConnected;
         private object errorsLock;
         private object serverInfosLock;
         private ConnectionInfo user;
@@ -62,19 +60,6 @@ namespace Client.ViewModel
             get { return Errors.Any(); }
         }
 
-        public bool IsConnected
-        {
-            get { return isConnected; }
-            set
-            {
-                if (isConnected != value)
-                {
-                    isConnected = value;
-                    OnPropertyChanged("IsConnected");
-                }
-            }
-        }
-
         public ConnectionInfo User
         {
             get { return user; }
@@ -114,19 +99,6 @@ namespace Client.ViewModel
             }
         }
 
-        public string ConnectionMessage
-        {
-            get { return connectionMessage; }
-            set
-            {
-                if (connectionMessage != value)
-                {
-                    connectionMessage = value;
-                    OnPropertyChanged("ConnectionMessage");
-                }
-            }
-        }
-
         public string Message
         {
             get { return message; }
@@ -142,13 +114,78 @@ namespace Client.ViewModel
 
         private async void OnConnect(object arg)
         {
-            if (!CheckConnection(false))
+            try
             {
-                await ConnectAsync(arg);
+                dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", arg.ToString());
+                dipSocketClient.Closed += DipSocketClientClosed; ;
+                dipSocketClient.Error += DipSocketClientError;
+
+                dipSocketClient.On("OnConnected", (result) =>
+                {
+                    User = JsonConvert.DeserializeObject<ConnectionInfo>(result.Data);
+                });
+
+                dipSocketClient.On("OnMessageReceived", (result) =>
+                {
+                    var serverInfo = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.Name.Equals(result.RecipientConnectionId));
+                    if (serverInfo == null)
+                    {
+                        return;
+                    }
+
+                    dispatcher.Invoke(() =>
+                    {
+                        serverInfo.Messages.Add(result);
+                    });
+                });
+
+                dipSocketClient.On("OnMessageError", (result) =>
+                {
+                    var error = JsonConvert.DeserializeObject<string>(result.Data);
+                    AddError(new Error { Message = error });
+                });
+
+                dipSocketClient.On("OnServerInfo", (result) =>
+                {
+                    lock (serverInfosLock)
+                    {
+                        var serverInfo = JsonConvert.DeserializeObject<ServerInfo>(result.Data);
+                        var allServerInfos = serverInfo.Channels.Cast<IInfo>()
+                                                                .Union(serverInfo.Connections.Where(c => !c.Name.Equals(User.Name)).Cast<IInfo>())
+                                                                .OrderBy(c => c.Name).ToList();
+
+                        var removals = ServerInfos.Where(c => !allServerInfos.Any(nc => nc.Name.Equals(c.Name))).ToList();
+                        foreach (var removal in removals)
+                        {
+                            ServerInfos.Remove(removal);
+                        }
+
+                        var updates = (from c in ServerInfos.OfType<Channel>()
+                                       join ci in allServerInfos.OfType<ChannelInfo>()
+                                       on c.Name equals ci.Name
+                                       select c.UpdateConnections(ci)).ToList();
+
+                        var additions = allServerInfos.Where(a => !ServerInfos.Any(c => c.Name.Equals(a.Name))).ToList();
+                        if (additions.Any())
+                        {
+                            foreach (var addition in additions)
+                            {
+                                dispatcher.Invoke(
+                                    () =>
+                                    {
+                                        var info = InfoFactory.GetInfo(addition);
+                                        ServerInfos.Add(info);
+                                    });
+                            }
+                        }
+                    }
+                });
+
+                await dipSocketClient.StartAsync();
             }
-            else
+            catch (Exception ex)
             {
-                await DisconnectAsync(arg);
+                Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
             }
         }
         
@@ -235,100 +272,6 @@ namespace Client.ViewModel
             }
 
             return false;
-        }
-
-        private async Task ConnectAsync(object arg)
-        {
-            try
-            {
-                if (arg == null
-                    || string.IsNullOrWhiteSpace(arg.ToString()))
-                {
-                    Errors.Add(new Error { Message = "A user name is required to connect to Chat", Verbose = "A user name is required to connect to Chat" });
-                    return;
-                }
-
-                dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", arg.ToString());
-                dipSocketClient.Closed += DipSocketClientClosed; ;
-                dipSocketClient.Error += DipSocketClientError;
-
-                dipSocketClient.On("OnConnected", (result) =>
-                {
-                    User = JsonConvert.DeserializeObject<ConnectionInfo>(result.Data);
-                    ConnectionMessage = $"{User.Name} is connected.";
-                    IsConnected = true;
-                });
-
-                dipSocketClient.On("OnMessageReceived", (result) =>
-                {
-                    var serverInfo = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.Name.Equals(result.RecipientConnectionId));
-                    if(serverInfo == null)
-                    {
-                        return;
-                    }
-
-                    dispatcher.Invoke(() =>
-                    {
-                        serverInfo.Messages.Add(result);
-                    });
-                });
-
-                dipSocketClient.On("OnMessageError", (result) =>
-                {
-                    var error = JsonConvert.DeserializeObject<string>(result.Data);
-                    AddError(new Error { Message = error });
-                });
-
-                dipSocketClient.On("OnServerInfo", (result) =>
-                {
-                    lock (serverInfosLock)
-                    {
-                        var serverInfo = JsonConvert.DeserializeObject<ServerInfo>(result.Data);
-                        var allServerInfos = serverInfo.Channels.Cast<IInfo>()
-                                                                .Union(serverInfo.Connections.Where(c => !c.Name.Equals(User.Name)).Cast<IInfo>())
-                                                                .OrderBy(c => c.Name).ToList();
-
-                        var removals = ServerInfos.Where(c => !allServerInfos.Any(nc => nc.Name.Equals(c.Name))).ToList();
-                        foreach (var removal in removals)
-                        {
-                            ServerInfos.Remove(removal);
-                        }
-
-                        var updates = (from c in ServerInfos.OfType<Channel>()
-                                       join ci in allServerInfos.OfType<ChannelInfo>()
-                                       on c.Name equals ci.Name
-                                       select c.UpdateConnections(ci)).ToList();
-
-                        var additions = allServerInfos.Where(a => !ServerInfos.Any(c => c.Name.Equals(a.Name))).ToList();
-                        if (additions.Any())
-                        {
-                            foreach (var addition in additions)
-                            {
-                                dispatcher.Invoke(
-                                    () =>
-                                    {
-                                        var info = InfoFactory.GetInfo(addition);
-                                        ServerInfos.Add(info);
-                                    });
-                            }
-                        }
-                    }
-                });
-
-                await dipSocketClient.StartAsync();
-
-                IsConnected = true;
-            }
-            catch (Exception ex)
-            {
-                IsConnected = false;
-                Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
-            }
-        }
-
-        private async Task DisconnectAsync(object arg)
-        {
-            throw new NotImplementedException();
         }
 
         private void DipSocketClientError(object sender, Exception ex)

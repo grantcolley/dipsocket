@@ -12,14 +12,18 @@ namespace Client.View
         public ChatView()
         {
             InitializeComponent();
-        }
 
-        private void ConnectUserKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key.Equals(Key.Enter))
+            var login = new LoginView();
+            login.ShowDialog();
+            if(!login.DialogResult.HasValue
+                || !login.DialogResult.Value)
             {
-                ((ChatViewModel)DataContext).ConnectCommand.Execute(txtUser.Text);
+                Application.Current.Shutdown();
             }
+
+            Title = login.UserName;
+
+            ((ChatViewModel)DataContext).ConnectCommand.Execute(login.UserName);
         }
 
         private void NewChannelKeyDown(object sender, KeyEventArgs e)
