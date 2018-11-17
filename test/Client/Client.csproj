@@ -58,6 +58,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ViewModel\ChatViewModel.cs" />
+    <Compile Include="View\LoginView.xaml.cs">
+      <DependentUpon>LoginView.xaml</DependentUpon>
+    </Compile>
     <Page Include="View\ChatView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -68,8 +72,6 @@
     </Compile>
     <Compile Include="Command\ViewModelCommand.cs" />
     <Compile Include="Converter\BoolToVisibilityConverter.cs" />
-    <Compile Include="Converter\IsConnectedToStringConverter.cs" />
-    <Compile Include="Converter\BoolToConnectConverter.cs" />
     <Compile Include="Converter\SelectedInfoToVisibilityConverter.cs" />
     <Compile Include="Model\Channel.cs" />
     <Compile Include="Model\ChannelExtensions.cs" />
@@ -77,11 +79,14 @@
     <Compile Include="Model\InfoDecorator.cs" />
     <Compile Include="Model\Error.cs" />
     <Compile Include="Model\InfoFactory.cs" />
-    <Compile Include="ViewModel\ChatViewModel.cs" />
     <Compile Include="View\ChatView.xaml.cs">
       <DependentUpon>ChatView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="View\LoginView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\NotifyPropertyChangedBase.cs" />
