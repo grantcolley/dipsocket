@@ -87,21 +87,22 @@
         <DockPanel Grid.Column="0" LastChildFill="True" Background="#141414">
             <GroupBox DockPanel.Dock="Top" Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <DockPanel DockPanel.Dock="Top" Background="#141414" LastChildFill="True">
-                    <Label DockPanel.Dock="Left" Margin="5" Content="Search" Foreground="#FFFFFF" Width="80"/>
+                    <Label DockPanel.Dock="Left" Margin="5" Content="Search" Foreground="#FFFFFF" Width="50"/>
                     <Button DockPanel.Dock="Right" Margin="5" Background="Transparent" BorderBrush="Transparent" 
                             ToolTip="Create a new channel"
-                            Command="{Binding NewChannelCommand}" 
-                            CommandParameter="{Binding ElementName=txtNewChannel, Path=Text}">
+                            Command="{Binding AddInfoCommand}" 
+                            CommandParameter="{Binding ElementName=cboServerInfos, Path=Text}">
                         <ContentControl Content="{StaticResource add}"/>
                     </Button>
-                    <TextBox x:Name="txtNewChannel" Margin="5" Foreground="#FFFFFF" Background="#141414" VerticalContentAlignment="Center"
-                             Text="{Binding NewChannel, Mode=twoWay, UpdateSourceTrigger=PropertyChanged}"
-                             KeyDown="NewChannelKeyDown"/>
+                    <ComboBox x:Name="cboServerInfos" Margin="5" IsEditable="True"
+                              ItemsSource="{Binding ServerInfos}"
+                              DisplayMemberPath="Name"
+                              Text="{Binding AddInfoName, Mode=twoWay}"/>
                 </DockPanel>
             </GroupBox>
             <GroupBox Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <ListBox Background="Transparent" BorderBrush="Transparent"
-                         ItemsSource="{Binding ServerInfos}"
+                         ItemsSource="{Binding UserInfos}"
                          SelectedItem="{Binding SelectedInfo, Mode=TwoWay}">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type model:InfoDecorator}">

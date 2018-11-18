@@ -11,7 +11,7 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner" 
         FocusManager.FocusedElement="{Binding ElementName=userName}"
-        Height="130" Width="240" Background="#141414">
+        Height="150" Width="240" Background="#141414">
     <Window.Resources>
 
         <Canvas x:Key="ok" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="ok" Width="20" Height="20" Clip="F1 M 0,0L 76,0L 76,76L 0,76L 0,0">
@@ -25,7 +25,7 @@
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>

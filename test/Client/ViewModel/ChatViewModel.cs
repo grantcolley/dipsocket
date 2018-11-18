@@ -7,7 +7,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.WebSockets;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -18,9 +17,10 @@ namespace Client.ViewModel
     public class ChatViewModel : NotifyPropertyChangedBase
     {
         private string message;
-        private string newChannel;
+        private string addInfoName;
         private object errorsLock;
         private object serverInfosLock;
+        private object userInfosLock;
         private ConnectionInfo user;
         private DipSocketClient dipSocketClient;
         private InfoDecorator selectedInfo;
@@ -29,7 +29,7 @@ namespace Client.ViewModel
         public ChatViewModel()
         {
             ConnectCommand = new ViewModelCommand(OnConnect);
-            NewChannelCommand = new ViewModelCommand(OnNewChannel);
+            AddInfoCommand = new ViewModelCommand(OnAddInfo);
             SendMessageCommand = new ViewModelCommand(OnSendMessage);
             RemoveCommand = new ViewModelCommand(OnRemoveItem);
             ClearErrorsCommand = new ViewModelCommand(OnClearErrors);
@@ -43,16 +43,21 @@ namespace Client.ViewModel
             ServerInfos = new ObservableCollection<IInfo>();
             BindingOperations.EnableCollectionSynchronization(ServerInfos, serverInfosLock);
 
+            userInfosLock = new object();
+            UserInfos = new ObservableCollection<IInfo>();
+            BindingOperations.EnableCollectionSynchronization(UserInfos, userInfosLock);
+
             dispatcher = Application.Current.Dispatcher;
         }
 
         public ICommand ConnectCommand { get; set; }
-        public ICommand NewChannelCommand { get; set; }
+        public ICommand AddInfoCommand { get; set; }
         public ICommand SendMessageCommand { get; set; }
         public ICommand RemoveCommand { get; set; }
         public ICommand ClearErrorsCommand { get; set; }
 
         public ObservableCollection<IInfo> ServerInfos { get; }
+        public ObservableCollection<IInfo> UserInfos { get; }
         public ObservableCollection<Error> Errors { get; set; }
 
         public bool HasErrors
@@ -86,15 +91,15 @@ namespace Client.ViewModel
             }
         }
 
-        public string NewChannel
+        public string AddInfoName
         {
-            get { return newChannel; }
+            get { return addInfoName; }
             set
             {
-                if (newChannel != value)
+                if (addInfoName != value)
                 {
-                    newChannel = value;
-                    OnPropertyChanged("NewChannel");
+                    addInfoName = value;
+                    OnPropertyChanged("AddInfoName");
                 }
             }
         }
@@ -158,6 +163,14 @@ namespace Client.ViewModel
                         foreach (var removal in removals)
                         {
                             ServerInfos.Remove(removal);
+                            var removeUserInfo = UserInfos.FirstOrDefault(i => i.Name.Equals(removal.Name));
+                            if(removeUserInfo != null)
+                            {
+                                lock(userInfosLock)
+                                {
+                                    UserInfos.Remove(removeUserInfo);
+                                }
+                            }
                         }
 
                         var updates = (from c in ServerInfos.OfType<Channel>()
@@ -189,10 +202,10 @@ namespace Client.ViewModel
             }
         }
         
-        private async void OnNewChannel(object args)
+        private async void OnAddInfo(object args)
         {
-            if(NewChannel == null
-                || string.IsNullOrWhiteSpace(NewChannel))
+            if(AddInfoName == null
+                || string.IsNullOrWhiteSpace(AddInfoName))
             {
                 Errors.Add(new Error { Message = "Specify the name of the channel you want to create.", Verbose = "Specify the name of the channel you want to create." });
                 return;
@@ -205,15 +218,28 @@ namespace Client.ViewModel
 
             try
             {
-                var clientMessage = new Message { SenderConnectionId = User.Name, Data = NewChannel, MessageType = MessageType.SubscribeToChannel };
+                var info = ServerInfos.FirstOrDefault(i => i.Name.Equals(AddInfoName));
+                if (info != null)
+                {
+                    UserInfos.Add(info);
+                    return;
+                }
+
+                var channel = InfoFactory.GetInfo(new ChannelInfo { Name = AddInfoName });
+                ServerInfos.Add(channel);
+                UserInfos.Add(channel);
+
+                var clientMessage = new Message { SenderConnectionId = User.Name, Data = AddInfoName, MessageType = MessageType.SubscribeToChannel };
 
                 await dipSocketClient.SendMessageAsync(clientMessage);
-
-                NewChannel = string.Empty;
             }
             catch (Exception ex)
             {
                 Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
+            }
+            finally
+            {
+                AddInfoName = string.Empty;
             }
         }
 

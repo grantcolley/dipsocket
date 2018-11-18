@@ -26,14 +26,6 @@ namespace Client.View
             ((ChatViewModel)DataContext).ConnectCommand.Execute(login.UserName);
         }
 
-        private void NewChannelKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key.Equals(Key.Enter))
-            {
-                ((ChatViewModel)DataContext).NewChannelCommand.Execute(txtNewChannel.Text);
-            }
-        }
-
         private void MessageKeyDown(object sender, KeyEventArgs e)
         {
             if(e.Key.Equals(Key.Enter))
