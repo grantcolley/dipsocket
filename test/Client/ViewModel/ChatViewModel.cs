@@ -132,7 +132,7 @@ namespace Client.ViewModel
 
                 dipSocketClient.On("OnMessageReceived", (result) =>
                 {
-                    var serverInfo = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.Name.Equals(result.RecipientConnectionId));
+                    var serverInfo = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(result.RecipientConnectionId));
                     if (serverInfo == null)
                     {
                         return;
@@ -140,7 +140,7 @@ namespace Client.ViewModel
 
                     dispatcher.Invoke(() =>
                     {
-                        serverInfo.Messages.Add(result);
+                        serverInfo.Conversation.Add(new Comment { SentOn = result.SentOn, Sender = result.SenderConnectionId, Text = result.Data });
                     });
                 });
 
@@ -222,12 +222,13 @@ namespace Client.ViewModel
                 if (info != null)
                 {
                     UserInfos.Add(info);
-                    return;
                 }
-
-                var channel = InfoFactory.GetInfo(new ChannelInfo { Name = AddInfoName });
-                ServerInfos.Add(channel);
-                UserInfos.Add(channel);
+                else
+                {
+                    var channel = InfoFactory.GetInfo(new ChannelInfo { Name = AddInfoName });
+                    ServerInfos.Add(channel);
+                    UserInfos.Add(channel);
+                }
 
                 var clientMessage = new Message { SenderConnectionId = User.Name, Data = AddInfoName, MessageType = MessageType.SubscribeToChannel };
 

@@ -7,6 +7,8 @@ namespace Client.Model
     {
         public static Channel UpdateConnections(this Channel channel, ChannelInfo channelInfo)
         {
+            channel.ConnectionId = channelInfo.ConnectionId;
+
             var removes = channel.Connections.Where(c => !channelInfo.Connections.Any(ci => ci.Name.Equals(c.Name))).ToList();
             foreach(var remove in removes)
             {

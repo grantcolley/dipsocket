@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -66,7 +67,7 @@ namespace Server
                         break;
 
                     case MessageType.SendToClient:
-                        message.MethodName = "OnMessageReceived";                        
+                        message.MethodName = "OnMessageReceived";
                         await SendMessageAsync(message).ConfigureAwait(false);
                         break;
 
@@ -99,7 +100,7 @@ namespace Server
                         break;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var errorMessage = new Message { MethodName = "OnMessageError", SenderConnectionId = "Chat", Data = $"Chat Error : {ex.Message}" };
                 await SendErrorMessage(webSocket, errorMessage).ConfigureAwait(false);
@@ -127,6 +128,45 @@ namespace Server
             var messageUpdateAll = new Message { MethodName = "OnServerInfo", SenderConnectionId = "Chat", Data = json };
 
             await SendMessageToAllAsync(messageUpdateAll);
+        }
+
+        public async Task SendMessageAsync(Message message)
+        {
+            var sender = GetConnection(message.SenderConnectionId);
+            var recipient = GetConnection(message.RecipientConnectionId);
+
+            if (sender != null
+                && recipient != null)
+            {
+                var connections = new List<Connection> { sender, recipient };
+
+                Func<Connection, Message> getMessage = conn =>
+                {
+                    if (conn.ConnectionId.Equals(message.SenderConnectionId))
+                    {
+
+                        return new Message
+                        {
+                            SenderConnectionId = message.SenderConnectionId,
+                            RecipientConnectionId = message.RecipientConnectionId,
+                            MessageType = message.MessageType,
+                            MethodName = message.MethodName,
+                            Data = message.Data
+                        };
+                    }
+
+                    return new Message
+                    {
+                        SenderConnectionId = message.SenderConnectionId,
+                        RecipientConnectionId = message.SenderConnectionId,
+                        MessageType = message.MessageType,
+                        MethodName = message.MethodName,
+                        Data = message.Data
+                    };
+                };
+
+                await SendMessageAsync(connections, getMessage).ConfigureAwait(false);
+            }
         }
     }
 }

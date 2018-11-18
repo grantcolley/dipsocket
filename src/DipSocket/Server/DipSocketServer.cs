@@ -112,49 +112,16 @@ namespace DipSocket.Server
         }
 
         /// <summary>
-        /// Send a message to both sender and recipient <see cref="WebSocket"/> client.
+        /// Send messages to a list of connections where the message for each connection is returned by a delegate.
         /// </summary>
-        /// <param name="message">The message to send.</param>
+        /// <param name="connections">The connections to send messages to.</param>
+        /// <param name="getMessage">The delegate to get the message for each connection.</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        public async Task SendMessageAsync(Message message)
-        { 
-            var sender = connectionManager.GetConnection(message.SenderConnectionId);
-            var recipient = connectionManager.GetConnection(message.RecipientConnectionId);
+        public async Task SendMessageAsync(List<Connection> connections, Func<Connection, Message> getMessage)
+        {
+            var webSockets = (from connection in connections select SendMessageAsync(connection.WebSocket, getMessage(connection))).ToList();
 
-            if (sender != null
-                && recipient != null)
-            {
-                var connections = new List<Connection> { sender, recipient };
-
-                Func<Connection, Message, Message> getMessage = (conn, msg) => 
-                {
-                    if(conn.ConnectionId.Equals(msg.SenderConnectionId))
-                    {
-
-                        return new Message
-                        {
-                            SenderConnectionId = msg.SenderConnectionId,
-                            RecipientConnectionId = msg.RecipientConnectionId,
-                            MessageType = msg.MessageType,
-                            MethodName = msg.MethodName,
-                            Data = msg.Data
-                        };
-                    }
-
-                    return new Message
-                    {
-                        SenderConnectionId = msg.SenderConnectionId,
-                        RecipientConnectionId = msg.SenderConnectionId,
-                        MessageType = msg.MessageType,
-                        MethodName = msg.MethodName,
-                        Data = msg.Data
-                    };
-                };
-
-                var webSockets = (from connection in connections select SendMessageAsync(connection.WebSocket, getMessage(connection, message))).ToList();
-
-                await Task.WhenAll(webSockets.ToArray()).ConfigureAwait(false);
-            }
+            await Task.WhenAll(webSockets.ToArray()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -301,6 +268,16 @@ namespace DipSocket.Server
             serverInfo.Channels = GetChannelInfos();
             serverInfo.Connections = GetConnectionInfos();
             return serverInfo;
+        }
+
+        /// <summary>
+        /// Gets a <see cref="Connection"/>.
+        /// </summary>
+        /// <param name="connectionId">The connection id.</param>
+        /// <returns>The <see cref="Connection"/>.</returns>
+        public Connection GetConnection(string connectionId)
+        {
+            return connectionManager.GetConnection(connectionId);
         }
 
         private List<ChannelInfo> GetChannelInfos()

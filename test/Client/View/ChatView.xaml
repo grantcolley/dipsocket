@@ -8,7 +8,7 @@
         xmlns:model="clr-namespace:Client.Model"
         xmlns:viewModel="clr-namespace:Client.ViewModel"
         mc:Ignorable="d" Background="#141414"
-        Title="Chat" Height="800" Width="1000" Icon="../Image/chat.png">
+        Title="Chat" Height="800" Width="800" Icon="../Image/chat.png">
     <Window.DataContext>
         <viewModel:ChatViewModel/>
     </Window.DataContext>
@@ -65,17 +65,7 @@
         <DataTemplate DataType="{x:Type model:Error}">
             <TextBlock Text="{Binding Message}" ToolTip="{Binding Verbose}" Foreground="#d9361a"/>
         </DataTemplate>
-
-        <DataTemplate DataType="{x:Type dip:Message}">
-            <GroupBox Style="{StaticResource GroupBoxNoHeaderStyle}">
-                <DockPanel LastChildFill="True">
-                    <Label DockPanel.Dock="Left" Content="{Binding SentOn}" VerticalAlignment="Top" HorizontalAlignment="Left" Foreground="#FFFFFF"/>
-                    <Label DockPanel.Dock="Left" Content="{Binding SentBy}" VerticalAlignment="Top" HorizontalAlignment="Left" Foreground="#FFFFFF"/>
-                    <Label DockPanel.Dock="Left" Content="{Binding Data}" VerticalAlignment="Top" HorizontalAlignment="Left" Foreground="#FFFFFF"/>
-                </DockPanel>
-            </GroupBox>
-        </DataTemplate>
-
+        
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -102,6 +92,8 @@
             </GroupBox>
             <GroupBox Background="#141414" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <ListBox Background="Transparent" BorderBrush="Transparent"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
                          ItemsSource="{Binding UserInfos}"
                          SelectedItem="{Binding SelectedInfo, Mode=TwoWay}">
                     <ListBox.ItemTemplate>
@@ -141,26 +133,30 @@
 
             <GroupBox Grid.Row="0" Background="#030303" BorderBrush="#FFFFFF" Style="{StaticResource GroupBoxNoHeaderStyle}">
                 <DockPanel LastChildFill="True">
-                    <ItemsControl DockPanel.Dock="Right" Margin="5" Background="#141414" BorderBrush="#FFFFFF" Width="200" 
+                    <ScrollViewer DockPanel.Dock="Right" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <ItemsControl Margin="5" Background="#141414" BorderBrush="#FFFFFF" Width="100" 
                                 ItemsSource="{Binding SelectedInfo.Connections, Mode=OneWay}"
                                 Visibility="{Binding SelectedInfo, Converter={StaticResource selectedInfoToVisibilityConverter}}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type dip:ConnectionInfo}">
-                                <Label Margin="5" Foreground="#FFFFFF" Content="{Binding Name}"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <ItemsControl Margin="5" Background="#030303" BorderBrush="Transparent" ItemsSource="{Binding SelectedInfo.Messages, Mode=OneWay}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type dip:Message}">
-                                <DockPanel LastChildFill="True">
-                                    <TextBlock DockPanel.Dock="Left" Foreground="#cccccc" Margin="5,5,5,5" Text="{Binding SentOn}"/>
-                                    <TextBlock DockPanel.Dock="Left" Foreground="#cccccc" Margin="5,5,5,5" Text="{Binding Sender}"/>
-                                    <TextBlock Foreground="#FFFFFF" Margin="5,5,5,5" Text="{Binding Data}"/>
-                                </DockPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type dip:ConnectionInfo}">
+                                    <Label Margin="5" Foreground="#FFFFFF" Content="{Binding Name}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <ItemsControl Margin="5" Background="#030303" BorderBrush="Transparent" ItemsSource="{Binding SelectedInfo.Convertsation, Mode=OneWay}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type model:Comment}">
+                                    <DockPanel LastChildFill="True">
+                                        <TextBlock DockPanel.Dock="Left" Foreground="#cccccc" Margin="5,5,5,5" Text="{Binding SentOn}"/>
+                                        <TextBlock DockPanel.Dock="Left" Foreground="#cccccc" Margin="5,5,5,5" Text="{Binding Sender}"/>
+                                        <TextBlock Foreground="#FFFFFF" Margin="5,5,5,5" Text="{Binding Text}"/>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                     </ScrollViewer>
                 </DockPanel>
             </GroupBox>
 
@@ -176,8 +172,8 @@
             <GridSplitter Grid.Row="3" Height="2" HorizontalAlignment="Stretch" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" Background="Transparent"/>
 
             <GroupBox Grid.Row="4" Background="#141414" BorderBrush="#FFFFFF" 
-                          Style="{StaticResource GroupBoxNoHeaderStyle}"
-                          Visibility="{Binding HasErrors, Converter={StaticResource boolToVisibilityConverter}}">
+                      Style="{StaticResource GroupBoxNoHeaderStyle}"
+                      Visibility="{Binding HasErrors, Converter={StaticResource boolToVisibilityConverter}}">
                 <DockPanel LastChildFill="True">
                     <DockPanel DockPanel.Dock="Top" LastChildFill="True">
                         <Label DockPanel.Dock="Left" Margin="0,5,5,5" Content="Errors" Foreground="#FFFFFF"/>

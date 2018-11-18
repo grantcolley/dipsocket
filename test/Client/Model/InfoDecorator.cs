@@ -11,10 +11,10 @@ namespace Client.Model
         {
             this.info = info;
 
-            Messages = new ObservableCollection<Message>();
+            Conversation = new ObservableCollection<Comment>();
         }
 
-        public ObservableCollection<Message> Messages { get; }
+        public ObservableCollection<Comment> Conversation { get; }
 
         public string Name
         {
