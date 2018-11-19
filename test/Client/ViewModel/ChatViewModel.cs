@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -18,9 +17,8 @@ namespace Client.ViewModel
     {
         private string message;
         private string addInfoName;
-        private object errorsLock;
         private object serverInfosLock;
-        private object userInfosLock;
+        private object errorsLock;
         private ConnectionInfo user;
         private DipSocketClient dipSocketClient;
         private InfoDecorator selectedInfo;
@@ -34,18 +32,15 @@ namespace Client.ViewModel
             RemoveCommand = new ViewModelCommand(OnRemoveItem);
             ClearErrorsCommand = new ViewModelCommand(OnClearErrors);
 
+            serverInfosLock = new object();
+
             errorsLock = new object();
             Errors = new ObservableCollection<Error>();
             Errors.CollectionChanged += ErrorsCollectionChanged;
             BindingOperations.EnableCollectionSynchronization(Errors, errorsLock);
 
-            serverInfosLock = new object();
             ServerInfos = new ObservableCollection<IInfo>();
-            BindingOperations.EnableCollectionSynchronization(ServerInfos, serverInfosLock);
-
-            userInfosLock = new object();
             UserInfos = new ObservableCollection<IInfo>();
-            BindingOperations.EnableCollectionSynchronization(UserInfos, userInfosLock);
 
             dispatcher = Application.Current.Dispatcher;
         }
@@ -132,66 +127,17 @@ namespace Client.ViewModel
 
                 dipSocketClient.On("OnMessageReceived", (result) =>
                 {
-                    var serverInfo = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(result.RecipientConnectionId));
-                    if (serverInfo == null)
-                    {
-                        return;
-                    }
-
-                    dispatcher.Invoke(() =>
-                    {
-                        serverInfo.Conversation.Add(new Comment { SentOn = result.SentOn, Sender = result.SenderConnectionId, Text = result.Data });
-                    });
+                    OnMessageReceived(result);
                 });
 
                 dipSocketClient.On("OnMessageError", (result) =>
                 {
-                    var error = JsonConvert.DeserializeObject<string>(result.Data);
-                    AddError(new Error { Message = error });
+                    OnMessageError(result);
                 });
 
                 dipSocketClient.On("OnServerInfo", (result) =>
                 {
-                    lock (serverInfosLock)
-                    {
-                        var serverInfo = JsonConvert.DeserializeObject<ServerInfo>(result.Data);
-                        var allServerInfos = serverInfo.Channels.Cast<IInfo>()
-                                                                .Union(serverInfo.Connections.Where(c => !c.Name.Equals(User.Name)).Cast<IInfo>())
-                                                                .OrderBy(c => c.Name).ToList();
-
-                        var removals = ServerInfos.Where(c => !allServerInfos.Any(nc => nc.Name.Equals(c.Name))).ToList();
-                        foreach (var removal in removals)
-                        {
-                            ServerInfos.Remove(removal);
-                            var removeUserInfo = UserInfos.FirstOrDefault(i => i.Name.Equals(removal.Name));
-                            if(removeUserInfo != null)
-                            {
-                                lock(userInfosLock)
-                                {
-                                    UserInfos.Remove(removeUserInfo);
-                                }
-                            }
-                        }
-
-                        var updates = (from c in ServerInfos.OfType<Channel>()
-                                       join ci in allServerInfos.OfType<ChannelInfo>()
-                                       on c.Name equals ci.Name
-                                       select c.UpdateConnections(ci)).ToList();
-
-                        var additions = allServerInfos.Where(a => !ServerInfos.Any(c => c.Name.Equals(a.Name))).ToList();
-                        if (additions.Any())
-                        {
-                            foreach (var addition in additions)
-                            {
-                                dispatcher.Invoke(
-                                    () =>
-                                    {
-                                        var info = InfoFactory.GetInfo(addition);
-                                        ServerInfos.Add(info);
-                                    });
-                            }
-                        }
-                    }
+                    OnServerInfo(result);
                 });
 
                 await dipSocketClient.StartAsync();
@@ -208,11 +154,6 @@ namespace Client.ViewModel
                 || string.IsNullOrWhiteSpace(AddInfoName))
             {
                 Errors.Add(new Error { Message = "Specify the name of the channel you want to create.", Verbose = "Specify the name of the channel you want to create." });
-                return;
-            }
-
-            if (!CheckConnection())
-            {
                 return;
             }
 
@@ -248,11 +189,6 @@ namespace Client.ViewModel
         {
             try
             {
-                if (!CheckConnection())
-                {
-                    return;
-                }
-
                 if(SelectedInfo == null)
                 {
                     return;
@@ -284,22 +220,6 @@ namespace Client.ViewModel
         {
             Errors.Clear();
         }
-        
-        private bool CheckConnection(bool showMessage = true)
-        {
-            if (dipSocketClient != null
-                && dipSocketClient.State.Equals(WebSocketState.Open))
-            {
-                return true;
-            }
-
-            if (showMessage)
-            {
-                Errors.Add(new Error { Message = "Connection isn't open.", Verbose = "Connection isn't open." });
-            }
-
-            return false;
-        }
 
         private void DipSocketClientError(object sender, Exception ex)
         {
@@ -309,6 +229,71 @@ namespace Client.ViewModel
         private void DipSocketClientClosed(object sender, EventArgs e)
         {
             AddError(new Error { Message = "Connection Closed" });
+        }
+
+        private void OnMessageReceived(Message message)
+        {
+            var serverInfo = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.RecipientConnectionId));
+            if (serverInfo == null)
+            {
+                return;
+            }
+
+            dispatcher.Invoke(() =>
+            {
+                serverInfo.Conversation.Add(new Comment { SentOn = message.SentOn, Sender = message.SenderConnectionId, Text = message.Data });
+            });
+        }
+
+        private void OnMessageError(Message message)
+        {
+            var error = JsonConvert.DeserializeObject<string>(message.Data);
+            AddError(new Error { Message = error });
+        }
+
+        private void OnServerInfo(Message message)
+        {
+            dispatcher.Invoke(
+                            () =>
+                            {
+                                lock (serverInfosLock)
+                                {
+                                    var serverInfo = JsonConvert.DeserializeObject<ServerInfo>(message.Data);
+                                    var allServerInfos = serverInfo.Channels.Cast<IInfo>()
+                                                                            .Union(serverInfo.Connections.Where(c => !c.Name.Equals(User.Name)).Cast<IInfo>())
+                                                                            .OrderBy(c => c.Name).ToList();
+
+                                    var removals = ServerInfos.Where(c => !allServerInfos.Any(nc => nc.Name.Equals(c.Name))).ToList();
+                                    foreach (var removal in removals)
+                                    {
+                                        ServerInfos.Remove(removal);
+                                        var removeUserInfo = UserInfos.FirstOrDefault(i => i.Name.Equals(removal.Name));
+                                        if (removeUserInfo != null)
+                                        {
+                                            UserInfos.Remove(removeUserInfo);
+                                        }
+                                    }
+
+                                    var updates = (from c in ServerInfos.OfType<Channel>()
+                                                   join ci in allServerInfos.OfType<ChannelInfo>()
+                                                   on c.Name equals ci.Name
+                                                   select c.UpdateConnections(ci)).ToList();
+
+                                    var additions = allServerInfos.Where(a => !ServerInfos.Any(c => c.Name.Equals(a.Name))).ToList();
+                                    if (additions.Any())
+                                    {
+                                        foreach (var addition in additions)
+                                        {
+                                            dispatcher.Invoke(
+                                                () =>
+                                                {
+                                                    var info = InfoFactory.GetInfo(addition);
+                                                    ServerInfos.Add(info);
+                                                });
+                                        }
+                                    }
+                                }
+                            });
         }
 
         private void AddError(Error error)

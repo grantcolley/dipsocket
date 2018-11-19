@@ -11,7 +11,7 @@ using DipSocket.Server;
 namespace DipSocket.Client
 {
     /// <summary>
-    /// Send and receive <see cref="WebSocket"/> requests to a <see cref="DipSocketServer"/>
+    /// Send and receives <see cref="WebSocket"/> requests to a <see cref="DipSocketServer"/>
     /// </summary>
     public class DipSocketClient
     {
@@ -19,15 +19,41 @@ namespace DipSocket.Client
         private Dictionary<string, Action<Message>> registeredMethods;
         private bool disposed;
 
+        /// <summary>
+        /// Raised when an exception is thrown.
+        /// </summary>
         public event EventHandler<Exception> Error;
+
+        /// <summary>
+        /// Raised when the <see cref="ClientWebSocket"/> is closed.  
+        /// </summary>
         public event EventHandler Closed;
 
+        /// <summary>
+        /// Gets the connection id.
+        /// </summary>
         public string ConnectionId { get; private set; }
+
+        /// <summary>
+        /// Gets the url of the <see cref="DipSocketServer"/>.
+        /// </summary>
         public string Url { get; private set; }
+
+        /// <summary>
+        /// Gets the client identifier.
+        /// </summary>
         public string ClientId { get; private set; }
 
+        /// <summary>
+        /// Gets the <see cref="ClientWebSocket"/> state.
+        /// </summary>
         public WebSocketState State { get { return clientWebSocket.State; } }
 
+        /// <summary>
+        /// Creates a new instance of the <see cref="DipSocketClient"/>.
+        /// </summary>
+        /// <param name="url">The url of the <see cref="DipSocketServer"/>.</param>
+        /// <param name="clientId">The client side identifier.</param>
         public DipSocketClient(string url, string clientId)
         {
             Url = url;
@@ -37,6 +63,10 @@ namespace DipSocket.Client
             registeredMethods = new Dictionary<string, Action<Message>>();
         }
 
+        /// <summary>
+        /// Close and dispose of the <see cref="ClientWebSocket"/>.
+        /// </summary>
+        /// <returns>A <see cref="Task"/>.</returns>
         public async Task DisposeAsync()
         {
             if (disposed)
@@ -54,11 +84,20 @@ namespace DipSocket.Client
             disposed = true;
         }
 
+        /// <summary>
+        /// Register a <see cref="Action"/> to be invoked when receiving a message from the <see cref="DipSocketServer"/>.
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="handler"></param>
         public void On(string methodName, Action<Message> handler)
         {
             registeredMethods.Add(methodName, handler);
         }
 
+        /// <summary>
+        /// Open a <see cref="WebSocket"/> connection with the <see cref="DipSocketServer"/>.
+        /// </summary>
+        /// <returns>A <see cref="Task"/>.</returns>
         public async Task StartAsync()
         {
             await clientWebSocket.ConnectAsync(new Uri($"{Url}?clientId={ClientId}"), CancellationToken.None);
@@ -66,6 +105,11 @@ namespace DipSocket.Client
             RunReceiving();
         }
 
+        /// <summary>
+        /// Send a mesage from to the <see cref="DipSocketServer"/> to be routed to the receipient.
+        /// </summary>
+        /// <param name="message">The <see cref="Message"/> to send.</param>
+        /// <returns>A <see cref="Task"/>.</returns>
         public async Task SendMessageAsync(Message message)
         {
             if (clientWebSocket.State.Equals(WebSocketState.Open))
@@ -78,6 +122,10 @@ namespace DipSocket.Client
             }
         }
 
+        /// <summary>
+        /// Close the <see cref="ClientWebSocket"/>.
+        /// </summary>
+        /// <returns>A <see cref="Task"/>.</returns>
         public async Task StopAsync()
         {
             if (clientWebSocket.State.Equals(WebSocketState.Open))
