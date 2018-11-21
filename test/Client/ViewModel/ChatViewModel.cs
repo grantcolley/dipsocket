@@ -171,9 +171,12 @@ namespace Client.ViewModel
                     UserInfos.Add(channel);
                 }
 
-                var clientMessage = new Message { SenderConnectionId = User.Name, Data = AddInfoName, MessageType = MessageType.SubscribeToChannel };
+                if(info is ChannelInfo)
+                {
+                    var clientMessage = new Message { SenderConnectionId = User.Name, Data = AddInfoName, MessageType = MessageType.SubscribeToChannel };
 
-                await dipSocketClient.SendMessageAsync(clientMessage);
+                    await dipSocketClient.SendMessageAsync(clientMessage);
+                }
             }
             catch (Exception ex)
             {
