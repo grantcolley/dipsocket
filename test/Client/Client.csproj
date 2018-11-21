@@ -127,4 +127,7 @@
     <Resource Include="Image\chat.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(ProjectDir)bin\Debug\*" "$(SolutionDir)bin\" /Y /I</PostBuildEvent>
+  </PropertyGroup>
 </Project>
