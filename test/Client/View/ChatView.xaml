@@ -135,7 +135,7 @@
                 <DockPanel LastChildFill="True">
                     <ScrollViewer DockPanel.Dock="Right" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                         <ItemsControl Margin="5" Background="#141414" BorderBrush="#FFFFFF" Width="100" 
-                                ItemsSource="{Binding SelectedInfo.Connections, Mode=OneWay}"
+                                ItemsSource="{Binding ChannelConnections, Mode=OneWay}"
                                 Visibility="{Binding SelectedInfo, Converter={StaticResource selectedInfoToVisibilityConverter}}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type dip:ConnectionInfo}">
@@ -145,7 +145,7 @@
                         </ItemsControl>
                     </ScrollViewer>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <ItemsControl Margin="5" Background="#030303" BorderBrush="Transparent" ItemsSource="{Binding SelectedInfo.Convertsation, Mode=OneWay}">
+                        <ItemsControl Margin="5" Background="#030303" BorderBrush="Transparent" ItemsSource="{Binding SelectedInfo.Conversation, Mode=OneWay}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type model:Comment}">
                                     <DockPanel LastChildFill="True">

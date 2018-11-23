@@ -86,6 +86,19 @@ namespace Client.ViewModel
             }
         }
 
+        public ObservableCollection<ConnectionInfo> ChannelConnections
+        {
+            get
+            {
+                if (SelectedInfo is Channel)
+                {
+                    return ((Channel)SelectedInfo).Connections;
+                }
+
+                return null;
+            }
+        }
+
         public string AddInfoName
         {
             get { return addInfoName; }
@@ -167,6 +180,7 @@ namespace Client.ViewModel
                 else
                 {
                     var channel = InfoFactory.GetInfo(new ChannelInfo { Name = AddInfoName });
+                    info = channel;
                     ServerInfos.Add(channel);
                     UserInfos.Add(channel);
                 }
