@@ -250,15 +250,32 @@ namespace Client.ViewModel
 
         private void OnMessageReceived(Message message)
         {
-            var serverInfo = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.RecipientConnectionId));
-            if (serverInfo == null)
+            var recipient = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.RecipientConnectionId));
+            if (recipient == null)
             {
+                AddError(new Error { Message = "Message received with no receipient" });
+                return;
+            }
+
+            var senderName = string.Empty;
+            var sender = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.SenderConnectionId));
+            if (sender != null)
+            {
+                senderName = sender.Name;
+            }
+            else if (User.ConnectionId.Equals(message.SenderConnectionId))
+            {
+                senderName = User.Name;
+            }
+            else
+            {
+                AddError(new Error { Message = "Message received with no sender" });
                 return;
             }
 
             dispatcher.Invoke(() =>
             {
-                serverInfo.Conversation.Add(new Comment { SentOn = message.SentOn, Sender = message.SenderConnectionId, Text = message.Data });
+                recipient.Conversation.Add(new Comment { SentOn = message.SentOn, Sender = senderName, Text = message.Data });
             });
         }
 
