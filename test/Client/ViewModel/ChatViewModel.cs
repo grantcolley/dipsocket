@@ -179,8 +179,8 @@ namespace Client.ViewModel
                 }
                 else
                 {
-                    var channel = InfoFactory.GetInfo(new ChannelInfo { Name = AddInfoName });
-                    info = channel;
+                    info = new ChannelInfo { Name = AddInfoName };
+                    var channel = InfoFactory.GetInfo(info);
                     ServerInfos.Add(channel);
                     UserInfos.Add(channel);
                 }
@@ -250,15 +250,14 @@ namespace Client.ViewModel
 
         private void OnMessageReceived(Message message)
         {
-            var recipient = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.RecipientConnectionId));
+            var recipient = UserInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.RecipientConnectionId));
             if (recipient == null)
             {
-                AddError(new Error { Message = "Message received with no receipient" });
                 return;
             }
 
             var senderName = string.Empty;
-            var sender = ServerInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.SenderConnectionId));
+            var sender = UserInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.SenderConnectionId));
             if (sender != null)
             {
                 senderName = sender.Name;

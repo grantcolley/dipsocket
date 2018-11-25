@@ -79,7 +79,7 @@
                 <DockPanel DockPanel.Dock="Top" Background="#141414" LastChildFill="True">
                     <Label DockPanel.Dock="Left" Margin="5" Content="Search" Foreground="#FFFFFF" Width="50"/>
                     <Button DockPanel.Dock="Right" Margin="5" Background="Transparent" BorderBrush="Transparent" 
-                            ToolTip="Create a new channel"
+                            ToolTip="Connect to a user or join a channel. To create a new channel type unique channel name."
                             Command="{Binding AddInfoCommand}" 
                             CommandParameter="{Binding ElementName=cboServerInfos, Path=Text}">
                         <ContentControl Content="{StaticResource add}"/>
