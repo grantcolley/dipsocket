@@ -82,6 +82,7 @@ namespace Client.ViewModel
                 {
                     selectedInfo = value;
                     OnPropertyChanged("SelectedInfo");
+                    OnPropertyChanged("ChannelConnections");
                 }
             }
         }
@@ -173,19 +174,18 @@ namespace Client.ViewModel
             try
             {
                 var info = ServerInfos.FirstOrDefault(i => i.Name.Equals(AddInfoName));
-                if (info != null)
+                if (info == null)
                 {
-                    UserInfos.Add(info);
-                }
-                else
-                {
-                    info = new ChannelInfo { Name = AddInfoName };
-                    var channel = InfoFactory.GetInfo(info);
-                    ServerInfos.Add(channel);
-                    UserInfos.Add(channel);
+                    var channelInfo = new ChannelInfo { Name = AddInfoName };
+                    info = InfoFactory.GetInfo(channelInfo);
+                    ServerInfos.Add(info);
                 }
 
-                if(info is ChannelInfo)
+                UserInfos.Add(info);
+
+                SelectedInfo = (InfoDecorator)info;
+
+                if (info is Channel)
                 {
                     var clientMessage = new Message { SenderConnectionId = User.Name, Data = AddInfoName, MessageType = MessageType.SubscribeToChannel };
 
@@ -257,12 +257,26 @@ namespace Client.ViewModel
             }
 
             var senderName = string.Empty;
-            var sender = UserInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.SenderConnectionId));
-            if (sender != null)
+
+            if(recipient is Channel)
             {
-                senderName = sender.Name;
+                var sender = ((Channel)recipient).Connections.FirstOrDefault(si => si.ConnectionId.Equals(message.SenderConnectionId));
+                if (sender != null)
+                {
+                    senderName = sender.Name;
+                }
             }
-            else if (User.ConnectionId.Equals(message.SenderConnectionId))
+            else
+            {
+                var sender = UserInfos.OfType<InfoDecorator>().FirstOrDefault(si => si.ConnectionId.Equals(message.SenderConnectionId));
+                if(sender != null)
+                {
+                    senderName = sender.Name;
+                }
+            }
+            
+            if (string.IsNullOrWhiteSpace(senderName)
+                && User.ConnectionId.Equals(message.SenderConnectionId))
             {
                 senderName = User.Name;
             }
