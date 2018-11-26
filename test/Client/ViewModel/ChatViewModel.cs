@@ -228,9 +228,35 @@ namespace Client.ViewModel
             }
         }
 
-        private void OnRemoveItem(object item)
+        private async void OnRemoveItem(object item)
         {
-            UserInfos.Remove((IInfo)item);
+            var info = item as IInfo;
+
+            if (info == null)
+            {
+                return;
+            }
+
+            try
+            {
+                UserInfos.Remove(info);
+
+                if(info.Equals(SelectedInfo))
+                {
+                    SelectedInfo = null;
+                }
+
+                if (info is Channel)
+                {
+                    var clientMessage = new Message { SenderConnectionId = User.Name, Data = info.Name, MessageType = MessageType.UnsubscribeFromChannel };
+
+                    await dipSocketClient.SendMessageAsync(clientMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                Errors.Add(new Error { Message = ex.Message, Verbose = ex.ToString() });
+            }
         }
 
         private void OnClearErrors(object args)
