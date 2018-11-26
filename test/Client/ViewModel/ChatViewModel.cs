@@ -230,7 +230,7 @@ namespace Client.ViewModel
 
         private void OnRemoveItem(object item)
         {
-            throw new NotImplementedException();
+            UserInfos.Remove((IInfo)item);
         }
 
         private void OnClearErrors(object args)
@@ -274,16 +274,18 @@ namespace Client.ViewModel
                     senderName = sender.Name;
                 }
             }
-            
-            if (string.IsNullOrWhiteSpace(senderName)
-                && User.ConnectionId.Equals(message.SenderConnectionId))
+
+            if (string.IsNullOrWhiteSpace(senderName))
             {
-                senderName = User.Name;
-            }
-            else
-            {
-                AddError(new Error { Message = "Message received with no sender" });
-                return;
+                if (User.ConnectionId.Equals(message.SenderConnectionId))
+                {
+                    senderName = User.Name;
+                }
+                else
+                {
+                    AddError(new Error { Message = "Message received with no sender" });
+                    return;
+                }
             }
 
             dispatcher.Invoke(() =>
