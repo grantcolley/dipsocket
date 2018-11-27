@@ -41,6 +41,7 @@ namespace DipSocket.Server
 
             if (channel.Connections.TryAdd(connection.ConnectionId, connection))
             {
+                connection.Channels.TryAdd(channel.Name, channel);
                 return channel;
             }
 
