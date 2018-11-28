@@ -49,6 +49,13 @@ namespace Server
             }
         }
 
+        public async override Task<Connection> OnClientDisonnectAsync(WebSocket webSocket)
+        {
+            await base.OnClientDisonnectAsync(webSocket).ConfigureAwait(false);
+            await ChannelUpdateAsync().ConfigureAwait(false);
+            return null;
+        }
+
         public async override Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer)
         {
             try

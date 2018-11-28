@@ -27,6 +27,7 @@ namespace Client.ViewModel
         public ChatViewModel()
         {
             ConnectCommand = new ViewModelCommand(OnConnect);
+            DisconnectCommand = new ViewModelCommand(OnDisconnect);
             AddInfoCommand = new ViewModelCommand(OnAddInfo);
             SendMessageCommand = new ViewModelCommand(OnSendMessage);
             RemoveCommand = new ViewModelCommand(OnRemoveItem);
@@ -46,6 +47,7 @@ namespace Client.ViewModel
         }
 
         public ICommand ConnectCommand { get; set; }
+        public ICommand DisconnectCommand { get; set; }
         public ICommand AddInfoCommand { get; set; }
         public ICommand SendMessageCommand { get; set; }
         public ICommand RemoveCommand { get; set; }
@@ -162,6 +164,11 @@ namespace Client.ViewModel
             }
         }
         
+        private async void OnDisconnect(object args)
+        {
+            await dipSocketClient.DisposeAsync();
+        }
+
         private async void OnAddInfo(object args)
         {
             if(AddInfoName == null

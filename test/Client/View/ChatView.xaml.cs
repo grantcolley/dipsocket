@@ -1,4 +1,5 @@
 ﻿using Client.ViewModel;
+using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -32,6 +33,11 @@ namespace Client.View
             {
                 ((ChatViewModel)DataContext).SendMessageCommand.Execute(txtMsg.Text);
             }
+        }
+
+        private void WindowClosing(object sender, EventArgs e)
+        {
+            ((ChatViewModel)DataContext).DisconnectCommand.Execute(null);
         }
     }
 }
