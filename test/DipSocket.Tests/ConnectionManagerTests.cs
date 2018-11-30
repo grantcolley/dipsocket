@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.WebSockets;
 using Xunit;
 
-namespace TestCaases
+namespace TestCases
 {
     public class ConnectionManagerTests
     {
@@ -130,8 +130,8 @@ namespace TestCaases
 
             // Assert
             Assert.Equal(2, connections.Count());
-            Assert.Equal(connection1, connections[0]);
-            Assert.Equal(connection2, connections[1]);
+            Assert.Contains(connection1, connections);
+            Assert.Contains(connection2, connections);
         }
 
         [Fact]
@@ -149,8 +149,8 @@ namespace TestCaases
 
             // Assert
             Assert.Equal(2, connectionInfos.Count());
-            Assert.Equal(connection1.GetConnectionInfo().ConnectionId, connectionInfos[0].ConnectionId);
-            Assert.Equal(connection2.GetConnectionInfo().ConnectionId, connectionInfos[1].ConnectionId);
+            Assert.Single(connectionInfos.Where(ci => ci.ConnectionId.Equals(connection1.GetConnectionInfo().ConnectionId)));
+            Assert.Single(connectionInfos.Where(ci => ci.ConnectionId.Equals(connection2.GetConnectionInfo().ConnectionId)));
         }
 
         [Fact]
