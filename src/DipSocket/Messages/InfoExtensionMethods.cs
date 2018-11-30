@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace DipSocket.Messages
 {
-    public static class InfoExtensionMethodscs
+    public static class InfoExtensionMethods
     {
         public static ConnectionInfo GetConnectionInfo(this Connection connection)
         {
