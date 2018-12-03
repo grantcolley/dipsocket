@@ -87,7 +87,21 @@ namespace DipSocket.Server
 
         internal bool TryRemoveChannel(string channelName, out Channel channel)
         {
-            return channels.TryRemove(channelName, out channel);
+            if (channels.TryRemove(channelName, out channel))
+            {
+                var connections = channel.Connections.Keys;
+                foreach(var connectionId in connections)
+                {
+                    if(channel.Connections.TryRemove(connectionId, out Connection connection))
+                    {
+                        connection.Channels.TryRemove(channelName, out Channel removed);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
         }
     }
 }
