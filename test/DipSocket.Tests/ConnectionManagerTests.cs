@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.WebSockets;
 using Xunit;
 
-namespace TestCases
+namespace DipSocket.Tests
 {
     public class ConnectionManagerTests
     {

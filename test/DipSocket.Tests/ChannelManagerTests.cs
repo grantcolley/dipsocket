@@ -1,6 +1,5 @@
 ﻿using DipSocket.Messages;
 using DipSocket.Server;
-using System.Linq;
 using System.Net.WebSockets;
 using Xunit;
 
@@ -136,9 +135,71 @@ namespace DipSocket.Tests
         }
 
         [Fact]
-        public void UnsubscribeFromChannel()
+        public void UnsubscribeFromChannel_NotFound()
         {
+            // Arrange
+            var channelManager = new ChannelManager();
+            var connection1 = new Connection(new ClientWebSocket()) { ConnectionId = "123", Name = "conn1" };
+            var connection2 = new Connection(new ClientWebSocket()) { ConnectionId = "456", Name = "conn2" };
+            var channelResult1 = channelManager.SubscribeToChannel("channel1", connection1);
+            var channelResult2 = channelManager.SubscribeToChannel("channel1", connection2);
 
+            // Act
+            var result = channelManager.UnsubscribeFromChannel("ABC", connection1);
+
+            // Assert
+            Assert.Null(result);
+
+            var channel = channelManager.GetChannel("channel1");
+            Assert.Equal(channelResult1, channel);
+            Assert.Contains(connection1.ConnectionId, channel.Connections.Keys);
+        }
+
+        [Fact]
+        public void UnsubscribeFromChannel_SingleUser()
+        {
+            // Arrange
+            var channelManager = new ChannelManager();
+            var connection1 = new Connection(new ClientWebSocket()) { ConnectionId = "123", Name = "conn1" };
+            var connection2 = new Connection(new ClientWebSocket()) { ConnectionId = "456", Name = "conn2" };
+            var channelResult1 = channelManager.SubscribeToChannel("channel1", connection1);
+            var channelResult2 = channelManager.SubscribeToChannel("channel1", connection2);
+
+            // Act
+            var result = channelManager.UnsubscribeFromChannel("channel1", connection1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(channelResult1, result);
+            Assert.Contains(connection2.ConnectionId, result.Connections.Keys);
+            Assert.DoesNotContain(connection1.ConnectionId, result.Connections.Keys);
+            Assert.DoesNotContain(result.Name, connection1.Channels.Keys);
+        }
+
+        [Fact]
+        public void UnsubscribeFromChannel_AllUsers()
+        {
+            // Arrange
+            var channelManager = new ChannelManager();
+            var connection1 = new Connection(new ClientWebSocket()) { ConnectionId = "123", Name = "conn1" };
+            var connection2 = new Connection(new ClientWebSocket()) { ConnectionId = "456", Name = "conn2" };
+            var channelResult1 = channelManager.SubscribeToChannel("channel1", connection1);
+            var channelResult2 = channelManager.SubscribeToChannel("channel1", connection2);
+
+            // Act
+            var result1 = channelManager.UnsubscribeFromChannel("channel1", connection1);
+            var result2 = channelManager.UnsubscribeFromChannel("channel1", connection2);
+
+            // Assert
+            Assert.NotNull(result1);
+            Assert.NotNull(result2);
+            Assert.Equal(channelResult1, result1);
+            Assert.Equal(channelResult1, result2);
+            Assert.DoesNotContain(connection1.ConnectionId, channelResult1.Connections.Keys);
+            Assert.DoesNotContain(connection2.ConnectionId, channelResult1.Connections.Keys);
+            Assert.Empty(channelResult1.Connections);
+            Assert.DoesNotContain(channelResult1.Name, connection1.Channels.Keys);
+            Assert.DoesNotContain(channelResult1.Name, connection2.Channels.Keys);
         }
     }
 }

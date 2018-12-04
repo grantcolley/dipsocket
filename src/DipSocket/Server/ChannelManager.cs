@@ -34,6 +34,16 @@ namespace DipSocket.Server
             return channels.Values.Select(c => c.GetChannelInfo()).ToList();
         }
 
+        internal Channel GetChannel(string channelName)
+        {
+            if (channels.TryGetValue(channelName, out Channel channel))
+            {
+                return channel;
+            }
+
+            return null;
+        }
+
         internal Channel SubscribeToChannel(string channelName, Connection connection)
         {
             var channel = channels.GetOrAdd(channelName, name =>
@@ -61,6 +71,8 @@ namespace DipSocket.Server
             {
                 channel.Connections.TryRemove(connection.ConnectionId, out Connection removedConnection);
 
+                removedConnection.Channels.TryRemove(channel.Name, out Channel removedConnectionChannel);
+
                 if (channel.Connections.Any())
                 {
                     return channel;
@@ -70,16 +82,6 @@ namespace DipSocket.Server
                 {
                     return removedChannel;
                 }
-            }
-
-            return null;
-        }
-
-        internal Channel GetChannel(string channelName)
-        {
-            if(channels.TryGetValue(channelName, out Channel channel))
-            {
-                return channel;
             }
 
             return null;
