@@ -10,11 +10,12 @@ Publisher subcriber wrapper using WebSocket's.
 
 #### Table of Contents
 * [Example Usage](#example-usage)
-  * [Client](#client-usage)
+  * [Client Connect](#client-connect-usage)
 
 ## Example Usage
 
-### Client
+### Client Connect
+Establish a client connection to the server.
 ```C#
                 dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", "clientId");
                 dipSocketClient.Closed += DipSocketClientClosed; ;
