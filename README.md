@@ -11,6 +11,7 @@ Publisher subcriber wrapper using WebSocket's.
 #### Table of Contents
 * [Example Usage](#example-usage)
   * [Client Connect](#client-connect-usage)
+  * [Client Message](#client-message-usage)
 
 ## Example Usage
 
@@ -32,4 +33,18 @@ Establish a client connection to the server.
                 });
 
                 await dipSocketClient.StartAsync();
+```
+
+### Client Message
+Send a message from one client cocket to another
+```C#
+                var clientMessage = new Message
+                {
+                    SenderConnectionId = User.ConnectionId,
+                    RecipientConnectionId = SelectedInfo.ConnectionId,
+                    Data = Message,
+                    MessageType = MessageType.SendToClient
+                };
+                
+                await dipSocketClient.SendMessageAsync(clientMessage);
 ```
