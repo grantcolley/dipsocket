@@ -10,7 +10,7 @@ Publisher subcriber wrapper using WebSocket's.
 
 #### Table of Contents
 * [Example Usage](#example-usage)
-** [Client](#client-usage)
+* [Client](#client-usage)
 
 ## Example Usage
 
