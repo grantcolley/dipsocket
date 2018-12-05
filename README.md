@@ -10,8 +10,25 @@ Publisher subcriber wrapper using WebSocket's.
 
 #### Table of Contents
 * [Example Usage](#example-usage)
+** [Client](#client-usage)
 
 ## Example Usage
 
+### Client
 ```C#
+                dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", arg.ToString());
+                dipSocketClient.Closed += DipSocketClientClosed; ;
+                dipSocketClient.Error += DipSocketClientError;
+
+                dipSocketClient.On("OnConnected", (result) =>
+                {
+                    OnConnected(result);
+                });
+
+                dipSocketClient.On("OnMessageReceived", (result) =>
+                {
+                    OnMessageReceived(result);
+                });
+
+                await dipSocketClient.StartAsync();
 ```
