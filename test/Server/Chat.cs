@@ -137,7 +137,7 @@ namespace Server
             await SendMessageToAllAsync(messageUpdateAll);
         }
 
-        public async Task SendMessageAsync(Message message)
+        private async Task SendMessageAsync(Message message)
         {
             var sender = GetConnection(message.SenderConnectionId);
             var recipient = GetConnection(message.RecipientConnectionId);

@@ -205,7 +205,7 @@ namespace DipSocket.Server
             }
 
             await webSocket.SendAsync(
-                new ArraySegment<byte>(Encoding.ASCII.GetBytes(message), 0, message.Length),
+                new ArraySegment<byte>(Encoding.UTF8.GetBytes(message), 0, message.Length),
                 WebSocketMessageType.Text, true, CancellationToken.None)
                 .ConfigureAwait(false);
         }
