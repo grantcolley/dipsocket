@@ -56,16 +56,10 @@ namespace Server
             return null;
         }
 
-        public async override Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer)
+        public async override Task ReceiveAsync(WebSocket webSocket, Message message)
         {
             try
             {
-                var json = Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count);
-
-                Console.WriteLine(json);
-
-                var message = JsonConvert.DeserializeObject<Message>(json);
-
                 switch (message.MessageType)
                 {
                     case MessageType.SendToAll:

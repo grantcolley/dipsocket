@@ -164,14 +164,33 @@ namespace DipSocket.Client
         private async Task Receiving()
         {
             var buffer = new byte[1024 * 4];
+            var messageBuilder = new StringBuilder();
 
             while (clientWebSocket.State.Equals(WebSocketState.Open))
             {
-                var result = await clientWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                WebSocketReceiveResult webSocketReceiveResult;
 
-                if (result.MessageType.Equals(WebSocketMessageType.Text))
+                messageBuilder.Clear();
+
+                do
                 {
-                    var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    webSocketReceiveResult = await clientWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                    if (webSocketReceiveResult.MessageType.Equals(WebSocketMessageType.Text))
+                    {
+                        messageBuilder.Append(Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count));
+                    }
+                    else if (webSocketReceiveResult.MessageType == WebSocketMessageType.Close)
+                    {
+                        await clientWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                        break;
+                    }
+                }
+                while (!webSocketReceiveResult.EndOfMessage);
+
+                if(messageBuilder.Length > 0)
+                {
+                    var json = messageBuilder.ToString();
 
                     var message = JsonConvert.DeserializeObject<Message>(json);
 
@@ -179,11 +198,6 @@ namespace DipSocket.Client
                     {
                         method.Invoke(message);
                     }
-                }
-                else if (result.MessageType == WebSocketMessageType.Close)
-                {
-                    await clientWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
-                    break;
                 }
             }
         }

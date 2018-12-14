@@ -1,9 +1,11 @@
-﻿using DipSocket.Server;
+﻿using DipSocket.Messages;
+using DipSocket.Server;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.WebSockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -66,23 +68,48 @@ namespace DipSocket.NetCore.Extensions
 
         private async Task Receive(WebSocket webSocket)
         {
-            var buffer = new byte[1024 * 4];
-
-            while (webSocket.State.Equals(WebSocketState.Open))
+            try
             {
-                var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                var buffer = new byte[1024 * 4];
+                var messageBuilder = new StringBuilder();
 
-                if (result.MessageType.Equals(WebSocketMessageType.Text))
+                while (webSocket.State.Equals(WebSocketState.Open))
                 {
-                    await dipSocketServer.ReceiveAsync(webSocket, result, buffer);
-                    continue;
-                }
+                    WebSocketReceiveResult webSocketReceiveResult;
 
-                if(result.MessageType.Equals(WebSocketMessageType.Close))
-                {
-                    await dipSocketServer.OnClientDisonnectAsync(webSocket);
-                    continue;
+                    messageBuilder.Clear();
+
+                    do
+                    {
+                        webSocketReceiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                        if (webSocketReceiveResult.MessageType.Equals(WebSocketMessageType.Text))
+                        {
+                            messageBuilder.Append(Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count));
+                            continue;
+                        }
+
+                        if (webSocketReceiveResult.MessageType.Equals(WebSocketMessageType.Close))
+                        {
+                            await dipSocketServer.OnClientDisonnectAsync(webSocket);
+                            continue;
+                        }
+                    }
+                    while (!webSocketReceiveResult.EndOfMessage);
+
+                    if (messageBuilder.Length > 0)
+                    {
+                        var json = messageBuilder.ToString();
+
+                        var message = JsonConvert.DeserializeObject<Message>(json);
+
+                        await dipSocketServer.ReceiveAsync(webSocket, message);
+                    }
                 }
+            }
+            finally
+            {
+                webSocket?.Dispose();
             }
         }
     }

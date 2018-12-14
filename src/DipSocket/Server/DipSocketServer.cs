@@ -44,10 +44,9 @@ namespace DipSocket.Server
         /// Receive a message from a <see cref="WebSocket"/>.
         /// </summary>
         /// <param name="webSocket">The <see cref="WebSocket"/>.</param>
-        /// <param name="webSocketReceiveResult">The <see cref="WebSocketReceiveResult"/>.</param>
-        /// <param name="buffer">The message.</param>
+        /// <param name="message">The <see cref="Message"/>.</param>
         /// <returns>A <see="Task"/>.</returns>
-        public abstract Task ReceiveAsync(WebSocket webSocket, WebSocketReceiveResult webSocketReceiveResult, byte[] buffer);
+        public abstract Task ReceiveAsync(WebSocket webSocket, Message message);
 
         /// <summary>
         /// Handle a <see cref="WebSocket"/> client connection.
