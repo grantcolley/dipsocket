@@ -44,7 +44,7 @@ Establish a DipSocketClient connection to the DipSocketServer.
 ```
 
 ### Client Message
-Send a message from a DipSocketClient to another via the DipSocketServer.
+Send a message from one DipSocketClient to another. Messages are routed via the server.
 ```C#
                 var clientMessage = new Message
                 {
@@ -57,7 +57,7 @@ Send a message from a DipSocketClient to another via the DipSocketServer.
                 await dipSocketClient.SendMessageAsync(clientMessage);
 ```
 
-A channel is a collection of DipSocketClient connections. Send a message from a DipSocketClient to channel on the DipSocketServer.
+Send a message from a DipSocketClient to channel on the DipSocketServer.
 ```C#
                 var clientMessage = new Message
                 {
