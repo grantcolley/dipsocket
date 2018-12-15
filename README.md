@@ -13,7 +13,7 @@ A lightweight publisher / subscriber implementation using WebSockets.
 #### Table of Contents
 * [DipSocketServer](#dipsocketserver)
 * [DipSocketClient](#dipsocketclient)
-* [DipSocket.NetCore.Extensions](#dipsocket-netcore-extensions)
+* [DipSocket NetCore Extensions](#dipsocket-netcore-extensions)
 * [Example Usage](#example-usage)
   * [Client Connect](#client-connect)
   * [Client Message](#client-message)
