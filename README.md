@@ -2,7 +2,7 @@
 
 A lightweight publisher / subscriber implementation using WebSockets.
 
-*.NET Standard* and *.NET Core 2.0*
+*.NET Standard*, *.NET Core 2.0* and *ASP .NET Core*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/2v4p02f4xrav4oeq?svg=true)](https://ci.appveyor.com/project/grantcolley/dipsocket)
 
@@ -13,12 +13,13 @@ A lightweight publisher / subscriber implementation using WebSockets.
 #### Table of Contents
 * [DipSocketServer](#dipsocketserver)
 * [DipSocketClient](#dipsocketclient)
-* [DipSocketMiddleware](#dipsocketmiddleware)
+* [DipSocket.NetCore.Extensions](#dipsocket.netcore.extensions)
 * [Example Usage](#example-usage)
   * [Client Connect](#client-connect)
   * [Client Message](#client-message)
   * [Server Implementation](#server-implementation)
-
+  * [Server Configure and Build](#server-configure-and-build)
+  
 ## DipSocketServer
 *.NET Standard 2.0*
 
@@ -29,9 +30,9 @@ A lightweight publisher / subscriber implementation using WebSockets.
 
 [DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) represents a client connection to the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs). Client connections can send messages to each other, routed via the server. Client connections can also create and subscribe to channels hosted by the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs).
 
-## DipSocketMiddleware
-*.NET Core 2.0*
-
+## DipSocket.NetCore.Extensions
+*.NET Core 2.0* and *ASP NET Core*
+DipSocket.NetCore.Extensions.dll provides the middleware and extension methods necessary for ASP .NET Core. Simply add dip socket to the services collection and get the app builder to use it.
 
 ## Example Usage
 
@@ -134,4 +135,10 @@ Inherit the abstract [DipSocketServer](https://github.com/grantcolley/dipsocket/
             }
         }
     }
+```
+
+### Server Configure and Build
+In the *Startup* class use the *IServiceCollection* extension method [*AddDipSocket*](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket.NetCore.Extensions/ServiceCollectionExtensions.cs) and the *IApplicationBuilder* extension method [*UseDipSocket\<T>*](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket.NetCore.Extensions/MiddlewareExtensions.cs). This will register each implementation of the *[DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs)* as a singleton in the service collection and add the [middleware](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket.NetCore.Extensions/DipSocketMiddleware.cs).
+ 
+```C#
 ```
