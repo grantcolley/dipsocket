@@ -1,6 +1,6 @@
 # dipsocket
 
-A lightweight WebSocket publisher / subscriber library.
+A lightweight publisher / subscriber implementation using WebSockets.
 
 [![Build status](https://ci.appveyor.com/api/projects/status/2v4p02f4xrav4oeq?svg=true)](https://ci.appveyor.com/project/grantcolley/dipsocket)
 
