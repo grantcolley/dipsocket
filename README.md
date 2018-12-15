@@ -6,7 +6,11 @@ A lightweight publisher / subscriber implementation using WebSockets.
 
 [![Build status](https://ci.appveyor.com/api/projects/status/2v4p02f4xrav4oeq?svg=true)](https://ci.appveyor.com/project/grantcolley/dipsocket)
 
-[NuGet package](https://www.nuget.org/packages/DipSocket/).
+NuGet
+* [DipSocket](https://www.nuget.org/packages/DipSocket/).
+* [DipSocket.NetCore.Extensions](https://www.nuget.org/packages/DipSocket.netcore.extensions/).
+<br/>
+<br/>
 
 ![Alt text](/README-images/dipsocket.png?raw=true "DipSocket")
 
