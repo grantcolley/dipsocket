@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Authors>Grant Colley</Authors>
+    <Company>Development In Progress Ltd</Company>
+    <Description>ASP .NET Core Extensions for DipSocket, a lightweight publisher / subscriber implementation using WebSockets.</Description>
+    <Copyright>Copyright © 2018. Development In Progress Ltd. All rights reserved.</Copyright>
+    <PackageLicenseUrl>https://github.com/grantcolley/dipsocket/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/grantcolley/dipsocket</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/grantcolley/dipsocket</RepositoryUrl>
+    <PackageTags>WebSocket, ASP .NET Core, Publish, Publisher, Subscribe, Subscriber</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
