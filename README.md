@@ -2,7 +2,7 @@
 
 A lightweight publisher / subscriber implementation using WebSockets.
 
-*.NET Standard*, *.NET Core 2.0* and *ASP .NET Core*
+*.NET Standard 2.0*, *.NET Core 2.1* and *ASP .NET Core*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/2v4p02f4xrav4oeq?svg=true)](https://ci.appveyor.com/project/grantcolley/dipsocket)
 
@@ -19,7 +19,8 @@ A lightweight publisher / subscriber implementation using WebSockets.
   * [Client Message](#client-message)
   * [Server Implementation](#server-implementation)
   * [Server Configure and Build](#server-configure-and-build)
-  
+* [Running the Example](#running-the-example)
+
 ## DipSocketServer
 *.NET Standard 2.0*
 
@@ -31,7 +32,7 @@ A lightweight publisher / subscriber implementation using WebSockets.
 [DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) represents a client connection to the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs). Client connections can send messages to each other, routed via the server. Client connections can also create and subscribe to channels hosted by the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs).
 
 ## DipSocket NetCore Extensions
-*.NET Core 2.0* and *ASP NET Core*
+*.NET Core 2.1* and *ASP NET Core*
 
 [DipSocket.NetCore.Extensions.dll](https://github.com/grantcolley/dipsocket/tree/master/src/DipSocket.NetCore.Extensions) provides the middleware and extension methods necessary for ASP .NET Core. Simply add dip socket to the services collection and get the app builder to use it.
 
@@ -156,3 +157,13 @@ The following shows how to set up the [*Chat*](https://github.com/grantcolley/di
             app.UseDipSocket<Chat>("/chat");
         }
     }
+```
+
+## Running the Example
+The example is a simple chat application. It consists of a WPF [client](https://github.com/grantcolley/dipsocket/tree/master/test/Client) and a ASP .NET Core [server](https://github.com/grantcolley/dipsocket/tree/master/test/Server).
+
+First launch the server. Then run multiple instances of the *Client.exe*.
+
+For each instance of the client provide a unique user name:
+
+The client will automatically attempt to connect to the server. From the drop down list
