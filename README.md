@@ -2,6 +2,8 @@
 
 A lightweight publisher / subscriber implementation using WebSockets.
 
+*.NET Standard* and *.NET Core 2.0*
+
 [![Build status](https://ci.appveyor.com/api/projects/status/2v4p02f4xrav4oeq?svg=true)](https://ci.appveyor.com/project/grantcolley/dipsocket)
 
 [NuGet package](https://www.nuget.org/packages/DipSocket/).
@@ -11,16 +13,25 @@ A lightweight publisher / subscriber implementation using WebSockets.
 #### Table of Contents
 * [DipSocketServer](#dipsocketserver)
 * [DipSocketClient](#dipsocketclient)
+* [DipSocketMiddleware](#dipsocketmiddleware)
 * [Example Usage](#example-usage)
   * [Client Connect](#client-connect)
   * [Client Message](#client-message)
   * [Server Implementation](#server-implementation)
 
 ## DipSocketServer
+*.NET Standard 2.0*
+
 [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs) hosts and manages a collection of [DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) connections. It also manages a collection of Channels. A Channel is a group of client connections that subscribe to it. Messages from one client connection to another client or to a channel get routed via the server. When a client sends a message to a channel the message is broadcast to all connections subscribing to the channel.
 
 ## DipSocketClient
+*.NET Standard 2.0*
+
 [DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) represents a client connection to the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs). Client connections can send messages to each other, routed via the server. Client connections can also create and subscribe to channels hosted by the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs).
+
+## DipSocketMiddleware
+*.NET Core 2.0*
+
 
 ## Example Usage
 
@@ -78,7 +89,7 @@ Send a message from a [DipSocketClient](https://github.com/grantcolley/dipsocket
 ### Server Implementation
 [Full example here...](https://github.com/grantcolley/dipsocket/blob/master/test/ChatServer/Chat.cs)
 
-Inherit the abstract [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs) class and override abstract methods _*OnClientConnectAsync*_ and _*ReceiveAsync*_.
+Inherit the abstract [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs) class and override abstract methods *OnClientConnectAsync* and *ReceiveAsync*.
 ```C#
     public class Chat : DipSocketServer
     {
