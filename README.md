@@ -16,10 +16,10 @@ A lightweight publisher / subscriber implementation using WebSockets.
   * [Client Message](#client-message)
 
 ## DipSocketServer
-DipSocketServer hosts and manages a collection of DipSocketClient connections and a collection of Channels. A Channel is a group of client connections that subscribe to it. Messages from one client connection to another client or to a channel get routed via the server. When a client sends a message to a channel the message is broadcast to all connections registered by the channel.
+DipSocketServer hosts and manages a collection of DipSocketClient connections. It also manages a collection of Channels. A Channel is a group of client connections that subscribe to it. Messages from one client connection to another client or to a channel get routed via the server. When a client sends a message to a channel the message is broadcast to all connections subscribing to the channel.
 
 ## DipSocketClient
-Represents a client connection to the DipSocketServer. Client connections can send messages to each other, routed via the server. Client connections can also create and subscribe to channels hosted by the DipSocketServer. A client message to a channel is routed to all connections subscribing to the channel.
+DipSocketClient represents a client connection to the DipSocketServer. Client connections can send messages to each other, routed via the server. Client connections can also create and subscribe to channels hosted by the DipSocketServer.
 
 ## Example Usage
 
