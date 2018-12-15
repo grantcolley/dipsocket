@@ -6,6 +6,8 @@ A lightweight publisher / subscriber implementation using WebSockets.
 
 [NuGet package](https://www.nuget.org/packages/DipSocket/).
 
+![Alt text](/README-images/dipsocket.png?raw=true "DipSocket")
+
 #### Table of Contents
 * [Example Usage](#example-usage)
   * [Client Connect](#client-connect)
