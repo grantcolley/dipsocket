@@ -26,6 +26,7 @@ A lightweight publisher / subscriber implementation using WebSockets.
 
 ### Client Connect
 [Full example here...](https://github.com/grantcolley/dipsocket/blob/master/test/Client/ViewModel/ChatViewModel.cs)
+
 Establish a [DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) connection to the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs).
 ```C#
                 dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", "clientId");
@@ -75,7 +76,51 @@ Send a message from a [DipSocketClient](https://github.com/grantcolley/dipsocket
 ```
 
 ### Server Implementation
-Inheriting abstract [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs).
-```C#
+[Full example here...](https://github.com/grantcolley/dipsocket/blob/master/test/ChatServer/Chat.cs)
 
+Inherit the abstract [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs) class and override abstract methods _*OnClientConnectAsync*_ and _*ReceiveAsync*_.
+```C#
+    public class Chat : DipSocketServer
+    {
+        public async override Task OnClientConnectAsync(WebSocket websocket, string clientId)
+        {
+            if (string.IsNullOrWhiteSpace(clientId))
+            {
+                throw new ArgumentNullException("clientId cannot be null or empty.");
+            }
+
+            var connection = await base.AddWebSocketAsync(websocket).ConfigureAwait(false);
+
+            connection.Name = clientId;
+
+            var connectionInfo = connection.GetConnectionInfo();
+
+            var json = JsonConvert.SerializeObject(connectionInfo);
+            
+            var message = new Message { MethodName = "OnConnected", SenderConnectionId = "Chat", Data = json };
+
+            await SendMessageAsync(websocket, message).ConfigureAwait(false);
+        }
+
+        public async override Task ReceiveAsync(WebSocket webSocket, Message message)
+        {
+            switch (message.MessageType)
+            {
+                case MessageType.SendToAll:
+                    message.MethodName = "OnMessageReceived";
+                    await SendMessageToAllAsync(message).ConfigureAwait(false);
+                    break;
+
+                case MessageType.SendToClient:
+                    message.MethodName = "OnMessageReceived";
+                    await SendMessageAsync(message).ConfigureAwait(false);
+                    break;
+
+                case MessageType.SubscribeToChannel:
+                    var channel = SubscribeToChannel(message.Data, webSocket);
+                    await ChannelUpdateAsync().ConfigureAwait(false);
+                    break;
+            }
+        }
+    }
 ```
