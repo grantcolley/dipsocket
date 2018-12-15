@@ -30,9 +30,9 @@ A lightweight publisher / subscriber implementation using WebSockets.
 
 [DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) represents a client connection to the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs). Client connections can send messages to each other, routed via the server. Client connections can also create and subscribe to channels hosted by the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs).
 
-## DipSocket.NetCore.Extensions
+## DipSocket NetCore Extensions
 *.NET Core 2.0* and *ASP NET Core*
-DipSocket.NetCore.Extensions.dll provides the middleware and extension methods necessary for ASP .NET Core. Simply add dip socket to the services collection and get the app builder to use it.
+[DipSocket.NetCore.Extensions.dll](https://github.com/grantcolley/dipsocket/tree/master/src/DipSocket.NetCore.Extensions) provides the middleware and extension methods necessary for ASP .NET Core. Simply add dip socket to the services collection and get the app builder to use it.
 
 ## Example Usage
 
