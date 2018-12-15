@@ -32,6 +32,7 @@ A lightweight publisher / subscriber implementation using WebSockets.
 
 ## DipSocket NetCore Extensions
 *.NET Core 2.0* and *ASP NET Core*
+
 [DipSocket.NetCore.Extensions.dll](https://github.com/grantcolley/dipsocket/tree/master/src/DipSocket.NetCore.Extensions) provides the middleware and extension methods necessary for ASP .NET Core. Simply add dip socket to the services collection and get the app builder to use it.
 
 ## Example Usage
@@ -139,6 +140,19 @@ Inherit the abstract [DipSocketServer](https://github.com/grantcolley/dipsocket/
 
 ### Server Configure and Build
 In the *Startup* class use the *IServiceCollection* extension method [*AddDipSocket*](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket.NetCore.Extensions/ServiceCollectionExtensions.cs) and the *IApplicationBuilder* extension method [*UseDipSocket\<T>*](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket.NetCore.Extensions/MiddlewareExtensions.cs). This will register each implementation of the *[DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs)* as a singleton in the service collection and add the [middleware](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket.NetCore.Extensions/DipSocketMiddleware.cs).
+
+The following shows how to set up the [*Chat*](https://github.com/grantcolley/dipsocket/blob/master/test/Server/Chat.cs) implementation of the *[DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs)* in the example code.
  
 ```C#
-```
+    public class Startup
+    {
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddDipSocket();
+        }
+
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        {
+            app.UseDipSocket<Chat>("/chat");
+        }
+    }
