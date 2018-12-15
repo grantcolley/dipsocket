@@ -166,4 +166,14 @@ First launch the server. Then run multiple instances of the *Client.exe*.
 
 For each instance of the client provide a unique user name:
 
-The client will automatically attempt to connect to the server. From the drop down list
+![Alt text](/README-images/login.png?raw=true "Login")
+
+The client will automatically attempt to connect to the server. 
+
+Either add a new channel, or select an existing connection or channel from the drop down list:
+
+![Alt text](/README-images/connect.png?raw=true "Connect")
+
+Write your message in the text box at the bottom and hit enter:
+
+![Alt text](/README-images/chat.png?raw=true "Chat")
