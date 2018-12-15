@@ -15,11 +15,11 @@ A lightweight publisher / subscriber implementation using WebSockets.
   * [Client Connect](#client-connect)
   * [Client Message](#client-message)
 
-## [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs)
-DipSocketServer hosts and manages a collection of DipSocketClient connections. It also manages a collection of Channels. A Channel is a group of client connections that subscribe to it. Messages from one client connection to another client or to a channel get routed via the server. When a client sends a message to a channel the message is broadcast to all connections subscribing to the channel.
+## DipSocketServer
+[DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs) hosts and manages a collection of DipSocketClient connections. It also manages a collection of Channels. A Channel is a group of client connections that subscribe to it. Messages from one client connection to another client or to a channel get routed via the server. When a client sends a message to a channel the message is broadcast to all connections subscribing to the channel.
 
 ## DipSocketClient
-DipSocketClient represents a client connection to the DipSocketServer. Client connections can send messages to each other, routed via the server. Client connections can also create and subscribe to channels hosted by the DipSocketServer.
+[DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) represents a client connection to the DipSocketServer. Client connections can send messages to each other, routed via the server. Client connections can also create and subscribe to channels hosted by the DipSocketServer.
 
 ## Example Usage
 
