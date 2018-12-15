@@ -6,8 +6,6 @@ A lightweight publisher / subscriber implementation using WebSockets.
 
 [NuGet package](https://www.nuget.org/packages/DipSocket/).
 
-Publisher subcriber wrapper using WebSocket's.
-
 #### Table of Contents
 * [Example Usage](#example-usage)
   * [Client Connect](#client-connect)
@@ -16,7 +14,7 @@ Publisher subcriber wrapper using WebSocket's.
 ## Example Usage
 
 ### Client Connect
-Establish a client connection to the server.
+Establish a DipSocketClient connection to the DipSocketServer.
 ```C#
                 dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", "clientId");
                 dipSocketClient.Closed += DipSocketClientClosed; ;
@@ -36,7 +34,7 @@ Establish a client connection to the server.
 ```
 
 ### Client Message
-Send a message from a client socket to another client socket
+Send a message from a DipSocketClient to another via the DipSocketServer.
 ```C#
                 var clientMessage = new Message
                 {
@@ -49,7 +47,7 @@ Send a message from a client socket to another client socket
                 await dipSocketClient.SendMessageAsync(clientMessage);
 ```
 
-Send a message from a client cocket to channel
+A channel is a collection of DipSocketClient connections. Send a message from a DipSocketClient to channel on the DipSocketServer.
 ```C#
                 var clientMessage = new Message
                 {
