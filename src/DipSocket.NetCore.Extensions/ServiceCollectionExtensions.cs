@@ -1,5 +1,6 @@
 ﻿using DipSocket.Server;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 using System.Reflection;
 
 namespace DipSocket.NetCore.Extensions
@@ -10,16 +11,26 @@ namespace DipSocket.NetCore.Extensions
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Register each type in <see cref="Assembly.GetEntryAssembly"/> 
-        /// that inherit <see cref="DipSocketServer"/> as a singleton service.
+        /// Registers the generic type and each type in <see cref="Assembly.GetEntryAssembly"/> 
+        /// that inherit <see cref="DipSocketServer"/> as singleton services.
         /// Add <see cref="ConnectionManager"/> and <see cref="ChannelManager"/> as transient services.
         /// </summary>
+        /// <typeparam name="T">The socket server that inherits from <see cref="DipSocketServer"/>.</typeparam>
         /// <param name="servicesCollection">The <see cref="IServiceCollection"/>.</param>
         /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddDipSocket(this IServiceCollection servicesCollection)
+        public static IServiceCollection AddDipSocket<T>(this IServiceCollection servicesCollection) where T : DipSocketServer
         {
-            servicesCollection.AddTransient<ConnectionManager>();
-            servicesCollection.AddTransient<ChannelManager>();
+            if (!servicesCollection.Any(s => s.ServiceType == typeof(ConnectionManager)))
+            {
+                servicesCollection.AddTransient<ConnectionManager>();
+            }
+
+            if (!servicesCollection.Any(s => s.ServiceType == typeof(ChannelManager)))
+            {
+                servicesCollection.AddTransient<ChannelManager>();
+            }
+
+            servicesCollection.AddSingleton(typeof(T));
 
             foreach (var type in Assembly.GetEntryAssembly().ExportedTypes)
             {
