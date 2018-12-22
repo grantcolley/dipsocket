@@ -94,7 +94,7 @@ Send a message from a [DipSocketClient](https://github.com/grantcolley/dipsocket
 ```
 
 ### Server Implementation
-[Full example here...](https://github.com/grantcolley/dipsocket/blob/master/test/ChatServer/Chat.cs)
+[Full example here...](https://github.com/grantcolley/dipsocket/blob/master/test/Server/Chat.cs)
 
 Inherit the abstract [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs) class and override abstract methods *OnClientConnectAsync* and *ReceiveAsync*.
 ```C#
