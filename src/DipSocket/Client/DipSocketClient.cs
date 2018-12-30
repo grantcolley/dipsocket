@@ -52,11 +52,23 @@ namespace DipSocket.Client
         /// <summary>
         /// Creates a new instance of the <see cref="DipSocketClient"/>.
         /// </summary>
-        /// <param name="url">The url of the <see cref="DipSocketServer"/>.</param>
+        /// <param name="url">The url of the <see cref="DipSocketServer"/>. Http and Https will be converted to ws.</param>
         /// <param name="clientId">The client side identifier.</param>
         public DipSocketClient(string url, string clientId)
         {
-            Url = url;
+            if (url.ToLower().StartsWith("https"))
+            {
+                Url = $"ws{url.Substring(5)}";
+            }
+            else if (url.ToLower().StartsWith("http"))
+            {
+                Url = $"ws{url.Substring(4)}";
+            }
+            else
+            {
+                Url = url;
+            }
+
             ClientId = clientId;
 
             clientWebSocket = new ClientWebSocket();
