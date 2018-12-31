@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DipSocket.Server;
+using System.Web;
 
 namespace DipSocket.Client
 {
@@ -122,14 +123,13 @@ namespace DipSocket.Client
         /// <returns>A <see cref="Task"/>.</returns>
         public async Task StartAsync(string data)
         {
-            var uri = $"{Url}?clientId={ClientId}";
+            var collection = HttpUtility.ParseQueryString(string.Empty);
+            collection["clientId"] = ClientId;
+            collection["data"] = data;
 
-            if(!string.IsNullOrWhiteSpace(data))
-            {
-                uri = $"{uri}?data={data}";
-            }
+            var uriBuilder = new UriBuilder(Url) { Query = collection.ToString() };
 
-            await clientWebSocket.ConnectAsync(new Uri(uri), CancellationToken.None);
+            await clientWebSocket.ConnectAsync(uriBuilder.Uri, CancellationToken.None);
 
             RunReceiving();
         }
