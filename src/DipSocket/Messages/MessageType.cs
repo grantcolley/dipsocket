@@ -9,7 +9,8 @@
         SendToAll,
         SendToChannel,
         SendToClient,
+        ServerToClient,
         SubscribeToChannel,
-        UnsubscribeFromChannel
+        UnsubscribeFromChannel        
     }
 }
