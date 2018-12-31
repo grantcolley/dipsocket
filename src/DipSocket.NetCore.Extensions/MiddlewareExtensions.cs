@@ -19,10 +19,7 @@ namespace DipSocket.NetCore.Extensions
         public static IApplicationBuilder UseDipSocket<T>(this IApplicationBuilder builder, string route) where T : DipSocketServer
         {
             builder.UseWebSockets();
-
-            var connectionManager = (ConnectionManager)builder.ApplicationServices.GetService(typeof(ConnectionManager));
-            var channelManager = (ChannelManager)builder.ApplicationServices.GetService(typeof(ChannelManager));
-            var webSocketServer = Activator.CreateInstance(typeof(T), new object[] { connectionManager, channelManager });
+            var webSocketServer = (T)builder.ApplicationServices.GetService(typeof(T));
             return builder.Map(route, (applicationBuilder) => applicationBuilder.UseMiddleware<DipSocketMiddleware>(webSocketServer));
         }
     }
