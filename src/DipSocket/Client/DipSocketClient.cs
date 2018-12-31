@@ -112,7 +112,24 @@ namespace DipSocket.Client
         /// <returns>A <see cref="Task"/>.</returns>
         public async Task StartAsync()
         {
-            await clientWebSocket.ConnectAsync(new Uri($"{Url}?clientId={ClientId}"), CancellationToken.None);
+            await StartAsync(string.Empty);
+        }
+
+        /// <summary>
+        /// Open a <see cref="WebSocket"/> connection with the <see cref="DipSocketServer"/>.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns>A <see cref="Task"/>.</returns>
+        public async Task StartAsync(string data)
+        {
+            var uri = $"{Url}?clientId={ClientId}";
+
+            if(!string.IsNullOrWhiteSpace(data))
+            {
+                uri = $"{uri}?data={data}";
+            }
+
+            await clientWebSocket.ConnectAsync(new Uri(uri), CancellationToken.None);
 
             RunReceiving();
         }

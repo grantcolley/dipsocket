@@ -52,9 +52,10 @@ namespace DipSocket.Server
         /// Handle a <see cref="WebSocket"/> client connection.
         /// </summary>
         /// <param name="websocket">The <see cref="WebSocket"/>.</param>
-        /// <param name="data">The data provided by the <see cref="WebSocket"/>.</param>
+        /// <param name="clientId">The identifier of the <see cref="WebSocket"/>.</param>
+        /// <param name="data">The data accompanying by the <see cref="WebSocket"/>.</param>
         /// <returns>A <see="Task"/>.</returns>
-        public abstract Task OnClientConnectAsync(WebSocket websocket, string data);
+        public abstract Task OnClientConnectAsync(WebSocket websocket, string clientId, string data);
 
         /// <summary>
         /// Removes the <see cref="WebSocket"/> <see cref="ConnectionManager"/>'s web sockets dictionary, 

@@ -42,7 +42,9 @@ namespace DipSocket.NetCore.Extensions
                     var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
                     var clientId = context.Request.Query["clientId"];
-                    await dipSocketServer.OnClientConnectAsync(webSocket, clientId);
+                    var data = context.Request.Query["data"];
+
+                    await dipSocketServer.OnClientConnectAsync(webSocket, clientId, data);
 
                     await Receive(webSocket);
                 }
