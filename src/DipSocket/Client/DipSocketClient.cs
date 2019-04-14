@@ -204,15 +204,15 @@ namespace DipSocket.Client
                 do
                 {
                     webSocketReceiveResult = await clientWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
-                    if (webSocketReceiveResult.MessageType.Equals(WebSocketMessageType.Text))
-                    {
-                        messageBuilder.Append(Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count));
-                    }
-                    else if (webSocketReceiveResult.MessageType == WebSocketMessageType.Close)
+                    
+                    if (webSocketReceiveResult.MessageType == WebSocketMessageType.Close)
                     {
                         await clientWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
                         break;
+                    }
+                    else if (webSocketReceiveResult.MessageType.Equals(WebSocketMessageType.Text))
+                    {
+                        messageBuilder.Append(Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count));
                     }
                 }
                 while (!webSocketReceiveResult.EndOfMessage);

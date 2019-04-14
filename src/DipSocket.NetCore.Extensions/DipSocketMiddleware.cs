@@ -85,15 +85,15 @@ namespace DipSocket.NetCore.Extensions
                     {
                         webSocketReceiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-                        if (webSocketReceiveResult.MessageType.Equals(WebSocketMessageType.Text))
-                        {
-                            messageBuilder.Append(Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count));
-                            continue;
-                        }
-
                         if (webSocketReceiveResult.MessageType.Equals(WebSocketMessageType.Close))
                         {
                             await dipSocketServer.OnClientDisonnectAsync(webSocket);
+                            continue;
+                        }
+
+                        if (webSocketReceiveResult.MessageType.Equals(WebSocketMessageType.Text))
+                        {
+                            messageBuilder.Append(Encoding.UTF8.GetString(buffer, 0, webSocketReceiveResult.Count));
                             continue;
                         }
                     }
