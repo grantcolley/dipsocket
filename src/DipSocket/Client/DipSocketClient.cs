@@ -89,7 +89,7 @@ namespace DipSocket.Client
 
             if (clientWebSocket.State == WebSocketState.Open)
             {
-                await clientWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                await clientWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
             }
 
             clientWebSocket.Dispose();
