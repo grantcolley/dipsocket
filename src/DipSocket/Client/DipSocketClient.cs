@@ -203,8 +203,20 @@ namespace DipSocket.Client
 
                 do
                 {
-                    webSocketReceiveResult = await clientWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                    
+                    try
+                    {
+                        webSocketReceiveResult = await clientWebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    }
+                    catch (WebSocketException)
+                    {
+                        if (clientWebSocket.State.Equals(WebSocketState.Aborted))
+                        {
+                            break;
+                        }
+
+                        throw;
+                    }
+
                     if (webSocketReceiveResult.MessageType == WebSocketMessageType.Close)
                     {
                         await clientWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
