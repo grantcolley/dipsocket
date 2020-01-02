@@ -47,7 +47,7 @@ NuGet
 
 Establish a [DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) connection to the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs).
 ```C#
-                dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", "clientId");
+                var dipSocketClient = new DipSocketClient(@"ws://localhost:6000/chat", "clientId");
                 dipSocketClient.Closed += DipSocketClientClosed; ;
                 dipSocketClient.Error += DipSocketClientError;
 
