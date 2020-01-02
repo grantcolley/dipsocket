@@ -80,7 +80,7 @@ Send a message from one [DipSocketClient](https://github.com/grantcolley/dipsock
                 await dipSocketClient.SendMessageAsync(clientMessage);
 ```
 
-Send a message from a [DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) to channel on the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs).
+Send a message from a [DipSocketClient](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Client/DipSocketClient.cs) to a channel on the [DipSocketServer](https://github.com/grantcolley/dipsocket/blob/master/src/DipSocket/Server/DipSocketServer.cs). The message is broadcast to all clients subscribing to the channel. 
 ```C#
                 var clientMessage = new Message
                 {
@@ -164,7 +164,7 @@ The following shows how to set up the [*Chat*](https://github.com/grantcolley/di
 ```
 
 ## Running the Example
-The example is a simple chat application. It consists of a WPF [client](https://github.com/grantcolley/dipsocket/tree/master/test/Client) and a ASP .NET Core [server](https://github.com/grantcolley/dipsocket/tree/master/test/Server).
+The example solution provided is a simple chat application. It consists of a WPF [client](https://github.com/grantcolley/dipsocket/tree/master/test/Client) and a ASP .NET Core [server](https://github.com/grantcolley/dipsocket/tree/master/test/Server).
 
 First launch the server. Then run multiple instances of the *Client.exe*.
 
