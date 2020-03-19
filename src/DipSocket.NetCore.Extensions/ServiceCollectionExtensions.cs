@@ -36,7 +36,10 @@ namespace DipSocket.NetCore.Extensions
             {
                 if (type.GetTypeInfo().BaseType.Equals(typeof(DipSocketServer)))
                 {
-                    servicesCollection.AddSingleton(type);
+                    if (!servicesCollection.Any(s => s.ServiceType == type.GetType()))
+                    {
+                        servicesCollection.AddSingleton(type);
+                    }
                 }
             }
 
