@@ -1,6 +1,5 @@
 ﻿using DipSocket.Server;
 using Microsoft.AspNetCore.Builder;
-using System;
 
 namespace DipSocket.NetCore.Extensions
 {
