@@ -12,7 +12,9 @@ NuGet
 <br/>
 <br/>
 
-![Alt text](/README-images/dipsocket.png?raw=true "DipSocket")
+Example of ***dipsocket*** being used as a chat application where users connect to a channel and join the discussion.
+
+![Alt text](/README-images/chat.png?raw=true "Chat")
 
 #### Table of Contents
 * [DipSocketServer](#dipsocketserver)
